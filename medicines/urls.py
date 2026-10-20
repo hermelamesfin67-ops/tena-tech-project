@@ -6,6 +6,7 @@ from .views import (DrugListView, DrugDetailView, DrugCreateView, LanguageListVi
 
 
 urlpatterns=[
+  
   path("", home, name="home"),
   path("drugs/",DrugListView.as_view(),name="drug-list"),
   path("drugs/<uuid:id>/", DrugDetailView.as_view(), name="drug-detail"),
@@ -20,6 +21,5 @@ urlpatterns=[
   path("drugs/translations/create/", DrugTranslationCreateView.as_view(), name="drug-translation-create"),
   path("drugs/warnings/", DrugWarningListView.as_view(), name="drug-warning-list"),
   path("drugs/warnings/create/", DrugWarningCreateView.as_view(), name="drug-warning-create"),
-
 
 ]
