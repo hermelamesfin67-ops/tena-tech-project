@@ -2,10 +2,11 @@ from django.urls import path
 from .views import (DrugListView, DrugDetailView, DrugCreateView, LanguageListView, CategoryListView
                     , LanguageCreateView, CategoryCreateView, CategoryTranslationCreateView
                     , CategoryTranslationListView,DrugTranslationListView,
-                    DrugTranslationCreateView,DrugWarningListView, DrugWarningCreateView)
+                    DrugTranslationCreateView,DrugWarningListView, DrugWarningCreateView,home)
 
 
 urlpatterns=[
+  path("", home, name="home"),
   path("drugs/",DrugListView.as_view(),name="drug-list"),
   path("drugs/<uuid:id>/", DrugDetailView.as_view(), name="drug-detail"),
   path("drugs/create/", DrugCreateView.as_view(), name="drug-create"),

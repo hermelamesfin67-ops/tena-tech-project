@@ -14,8 +14,21 @@ from .serializers import (
 )
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
 
+@api_view(["GET"])
+def home(request):
+    return Response({
+        "message": "Welcome to Tenatech API",
+        "status": "running",
+        "endpoints": {
+            "drugs": "/drugs/",
+            "languages": "/languages/",
+            "categories": "/categories/",
+            "drug_warnings": "/drugs/warnings/",
+        }
+    })
 class DrugListView(generics.ListAPIView):
     serializer_class = DrugSerializer
 
