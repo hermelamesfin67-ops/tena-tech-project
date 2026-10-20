@@ -25,10 +25,14 @@ SECRET_KEY = 'django-insecure-^!(grr3$&qbyatigv9(@k5zn62000+^f5(#sqwxdtb_m)&fx4d
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "tena-tech-project-production.up.railway.app"
+]
+]
 
 
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
