@@ -31,7 +31,7 @@ DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
-    "https://tena-tech-project.onrender.com"
+    "tena-tech-project.onrender.com"
 ]
 
 
