@@ -85,8 +85,7 @@ class DrugListView(generics.ListAPIView):
             )
 
 
-        return queryset.distinct()
-
+        return queryset.order_by("id").distinct()
 
 class DrugDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = DrugSerializer
