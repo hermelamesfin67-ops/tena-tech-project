@@ -11,6 +11,8 @@ from .serializers import (
     CategoryTranslationSerializer,
     DrugTranslationSerializer,
     DrugWarningSerializer,
+    DrugInteractionSerializer,
+
 )
 from rest_framework import status
 from rest_framework.response import Response
@@ -161,3 +163,8 @@ class DrugWarningListView(generics.ListAPIView):
             queryset = queryset.filter(drug_id=drug_id)
 
         return queryset
+class DrugInteractionListView(generics.ListAPIView):
+    """List published drug interactions."""
+
+    serializer_class=DrugInteractionSerializer
+     

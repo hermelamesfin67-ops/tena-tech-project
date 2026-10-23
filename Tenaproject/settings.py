@@ -32,6 +32,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "tena-tech-project.onrender.com"
+    "tena-system.vercel.app"
 ]
 
 

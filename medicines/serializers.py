@@ -268,3 +268,19 @@ class DrugInteractionSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+        def validate(self, attrs):
+            drug_a = attrs.get(
+                "drug_a",
+                getattr(self.instance, "drug_a", None),
+            )
+            drug_b = attrs.get(
+                "drug_b",
+                getattr(self.instance, "drug_b", None),
+            )
+
+            if drug_a and drug_b and drug_a.pk == drug_b.pk:
+                raise serializers.ValidationError({
+                    "drug_b": "A drug cannot interact with itself."
+                })
+
+            return attrs

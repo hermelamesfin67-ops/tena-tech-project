@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (DrugListView, DrugDetailView, DrugCreateView, LanguageListView, CategoryListView
                     , LanguageCreateView, CategoryCreateView, CategoryTranslationCreateView
                     , CategoryTranslationListView,DrugTranslationListView,
-                    DrugTranslationCreateView,DrugWarningListView, DrugWarningCreateView,home)
+                    DrugTranslationCreateView,DrugWarningListView, DrugWarningCreateView,home,
+                    DrugInteractionListView, DrugInteractionCreateView)
 
 
 urlpatterns=[
@@ -21,5 +22,5 @@ urlpatterns=[
   path("drugs/translations/create/", DrugTranslationCreateView.as_view(), name="drug-translation-create"),
   path("drugs/warnings/", DrugWarningListView.as_view(), name="drug-warning-list"),
   path("drugs/warnings/create/", DrugWarningCreateView.as_view(), name="drug-warning-create"),
-
+  path("drugs/interactions/", DrugInteractionListView.as_view(), name="drug-interaction-list"),
 ]
