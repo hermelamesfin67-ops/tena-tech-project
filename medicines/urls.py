@@ -3,7 +3,7 @@ from .views import (DrugListView, DrugDetailView, DrugCreateView, LanguageListVi
                     , LanguageCreateView, CategoryCreateView, CategoryTranslationCreateView
                     , CategoryTranslationListView,DrugTranslationListView,
                     DrugTranslationCreateView,DrugWarningListView, DrugWarningCreateView,home,
-                    DrugInteractionListView, DrugInteractionCreateView)
+                    DrugInteractionListView)
 
 
 urlpatterns=[
