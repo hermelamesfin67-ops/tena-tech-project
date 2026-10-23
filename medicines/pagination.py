@@ -4,9 +4,12 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from medicines.models import Drug
+
+
 class DrugPagination(PageNumberPagination):
     page_size = 10
     page_query_param = "page"
+
     def get_paginated_response(self, data):
         total_medicines = Drug.objects.filter(
             is_active=True
@@ -19,6 +22,7 @@ class DrugPagination(PageNumberPagination):
             "previous": self.get_previous_link(),
             "results": data,
         })
+
 
 class CategoryPagination(PageNumberPagination):
     page_size = 10

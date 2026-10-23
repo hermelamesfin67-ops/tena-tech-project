@@ -4,7 +4,7 @@ from rest_framework import generics
 from rest_framework.filters import SearchFilter
 from django.db.models import Q, Prefetch
 from .models import (Drug, DrugTranslation, Language, Category, 
-                     CategoryTranslation, DrugWarning)
+                     CategoryTranslation, DrugWarning, DrugInteraction)
 from .serializers import (
     DrugSerializer,
     LanguageSerializer,
@@ -207,4 +207,27 @@ class DrugInteractionListView(generics.ListAPIView):
     """List published drug interactions."""
 
     serializer_class=DrugInteractionSerializer
-     
+    def get_queryset(self):
+        queryset = DrugInteraction.objects.filter(
+            review_status=DrugInteraction.Status.PUBLISHED
+        )
+
+        drug_id = self.request.query_params.get("drug_id")
+
+        if drug_id:
+            queryset = queryset.filter(
+                Q(drug_a_id=drug_id)
+                | Q(drug_b_id=drug_id)
+            )
+
+        return queryset.select_related(
+            "drug_a",
+            "drug_b",
+        ).prefetch_related(
+            "sources",
+            "translations",
+        ).order_by("id")
+
+
+class DrugInteractionCreateView(generics.CreateAPIView):
+    serializer_class = DrugInteractionSerializer

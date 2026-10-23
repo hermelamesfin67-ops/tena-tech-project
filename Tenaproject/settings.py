@@ -32,11 +32,12 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "tena-tech-project.onrender.com",
-    "tena-system.vercel.app"
 ]
 
 
-CORS_ALLOWED_ORIGINS = ["http://localhost:3050"]
+CORS_ALLOWED_ORIGINS = ["http://localhost:3050",
+                        "https://tena-system.vercel.app",
+                        ]
 
 
 INSTALLED_APPS = [

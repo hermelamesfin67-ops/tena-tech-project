@@ -268,7 +268,17 @@ class DrugInteractionSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        def validate(self, attrs):
+    def get_translations(self, obj):
+        published_translations = obj.translations.filter(
+            review_status=DrugInteraction.Status.PUBLISHED
+        )
+        return DrugInteractionTranslationSerializer(
+            published_translations,
+            many=True,
+            context=self.context,
+        ).data
+
+    def validate(self, attrs):
             drug_a = attrs.get(
                 "drug_a",
                 getattr(self.instance, "drug_a", None),
