@@ -1,7 +1,8 @@
 
 from django.db.models import Prefetch
 from rest_framework import generics
-
+from rest_framework.filters import SearchFilter
+from django.db.models import Q, Prefetch
 from .models import (Drug, DrugTranslation, Language, Category, 
                      CategoryTranslation, DrugWarning)
 from .serializers import (
@@ -17,7 +18,7 @@ from .serializers import (
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-
+from .pagination import DrugPagination, CategoryPagination
 
 @api_view(["GET"])
 def home(request):
@@ -31,20 +32,60 @@ def home(request):
             "drug_warnings": "/drugs/warnings/",
         }
     })
+
+
 class DrugListView(generics.ListAPIView):
     serializer_class = DrugSerializer
+    pagination_class = DrugPagination
+
+    filter_backends = [SearchFilter]
+
+    search_fields = [
+        "generic_name",
+        "brand_name",
+        "translations__display_name",
+    ]
 
     def get_queryset(self):
-        return Drug.objects.filter(
+        queryset = Drug.objects.filter(
             is_active=True
         ).prefetch_related(
             Prefetch(
                 "translations",
                 queryset=DrugTranslation.objects.filter(
                     review_status=DrugTranslation.Status.PUBLISHED
-                ),
+                ).select_related("language"),
             )
         )
+
+        search = self.request.query_params.get(
+            "search", ""
+        ).strip()
+
+        if search:
+            queryset = queryset.filter(
+                Q(generic_name__istartswith=search)
+                | Q(brand_name__istartswith=search)
+                | Q(
+                    translations__display_name__istartswith=search,
+                    translations__review_status=(
+                        DrugTranslation.Status.PUBLISHED
+                    ),
+                )
+                | Q(
+                    categories__translations__name__istartswith=search,
+                    categories__translations__language__is_active=True,
+                )
+            )
+
+        category = self.request.query_params.get("category")
+        if category:
+            queryset = queryset.filter(
+                categories__slug=category
+            )
+
+
+        return queryset.distinct()
 
 
 class DrugDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -92,7 +133,7 @@ class LanguageListView(generics.ListAPIView):
 class CategoryListView(generics.ListAPIView):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
-
+    pagination_class = CategoryPagination
 
 class LanguageCreateView(generics.CreateAPIView):
     queryset = Language.objects.all()
