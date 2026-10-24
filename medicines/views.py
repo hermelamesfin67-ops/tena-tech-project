@@ -3,8 +3,10 @@ from django.db.models import Prefetch
 from rest_framework import generics
 from rest_framework.filters import SearchFilter
 from django.db.models import Q, Prefetch
-from .models import (Drug, DrugTranslation, Language, Category, 
-                     CategoryTranslation, DrugWarning, DrugInteraction)
+from .models import (Drug, DrugTranslation, Language, Category,
+                     CategoryTranslation, DrugWarning, DrugInteraction,
+                     DrugInteractionTranslation, DrugWarningTranslation,
+                     DrugSource)
 from .serializers import (
     DrugSerializer,
     LanguageSerializer,
@@ -13,12 +15,16 @@ from .serializers import (
     DrugTranslationSerializer,
     DrugWarningSerializer,
     DrugInteractionSerializer,
+    DrugInteractionTranslationSerializer,
+    DrugWarningTranslationSerializer,
+    DrugSourceSerializer
 
 )
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .pagination import DrugPagination, CategoryPagination
+
 
 @api_view(["GET"])
 def home(request):
@@ -84,8 +90,8 @@ class DrugListView(generics.ListAPIView):
                 categories__slug=category
             )
 
-
         return queryset.order_by("id").distinct()
+
 
 class DrugDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = DrugSerializer
@@ -133,6 +139,7 @@ class CategoryListView(generics.ListAPIView):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
     pagination_class = CategoryPagination
+
 
 class LanguageCreateView(generics.CreateAPIView):
     queryset = Language.objects.all()
@@ -203,10 +210,13 @@ class DrugWarningListView(generics.ListAPIView):
             queryset = queryset.filter(drug_id=drug_id)
 
         return queryset
+
+
 class DrugInteractionListView(generics.ListAPIView):
     """List published drug interactions."""
 
-    serializer_class=DrugInteractionSerializer
+    serializer_class = DrugInteractionSerializer
+
     def get_queryset(self):
         queryset = DrugInteraction.objects.filter(
             review_status=DrugInteraction.Status.PUBLISHED
@@ -231,3 +241,52 @@ class DrugInteractionListView(generics.ListAPIView):
 
 class DrugInteractionCreateView(generics.CreateAPIView):
     serializer_class = DrugInteractionSerializer
+
+
+class DrugInteractionTranslationListView(generics.ListAPIView):
+    serializer_class = DrugInteractionTranslationSerializer
+
+    def get_queryset(self):
+        queryset = DrugInteractionTranslation.objects.all()
+
+        language_code = self.request.query_params.get("language")
+
+        if language_code:
+                queryset = queryset.filter(
+                    language__code=language_code
+                )
+
+        return queryset
+
+
+class DrugInteractionTranslationCreateView(generics.CreateAPIView):
+    queryset = DrugInteractionTranslation.objects.all()
+    serializer_class = DrugInteractionTranslationSerializer
+
+
+class DrugWarningTranslationCreateView(generics.CreateAPIView):
+    queryset = DrugWarningTranslation.objects.all()
+    serializer_class = DrugWarningTranslationSerializer
+
+class DrugWarningTranslationListView(generics.ListAPIView):
+    serializer_class = DrugWarningTranslationSerializer
+
+    def get_queryset(self):
+        queryset = DrugWarningTranslation.objects.all()
+
+        language_code = self.request.query_params.get("language")
+
+        if language_code:
+            queryset = queryset.filter(
+                language__code=language_code
+            )
+
+        return queryset
+class DrugSourceListView(generics.ListAPIView):
+    serializer_class = DrugSourceSerializer
+
+    def get_queryset(self):
+        return DrugSource.objects.all()
+class DrugSourceCreateView(generics.CreateAPIView):
+    queryset = DrugSource.objects.all()
+    serializer_class = DrugSourceSerializer

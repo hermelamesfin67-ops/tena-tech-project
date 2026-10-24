@@ -166,6 +166,7 @@ class DrugWarningTranslationSerializer(
         model = DrugWarningTranslation
         fields = [
             "id",
+            "warning",
             "language",
             "language_code",
             "title",
@@ -223,6 +224,7 @@ class DrugInteractionTranslationSerializer(
         model = DrugInteractionTranslation
         fields = [
             "id",
+            "interaction",
             "language",
             "language_code",
             "explanation",
@@ -243,17 +245,27 @@ class DrugInteractionTranslationSerializer(
 
 
 class DrugInteractionSerializer(serializers.ModelSerializer):
+    drug_a_name = serializers.CharField(
+        source="drug_a.generic_name",
+        read_only=True,
+    )
+    drug_b_name = serializers.CharField(
+        source="drug_b.generic_name",
+        read_only=True,
+    )
     translations = DrugInteractionTranslationSerializer(
         many=True,
         read_only=True,
     )
-
+   
     class Meta:
         model = DrugInteraction
         fields = [
             "id",
             "drug_a",
+            "drug_a_name",
             "drug_b",
+            "drug_b_name",
             "severity",
             "sources",
             "review_status",
