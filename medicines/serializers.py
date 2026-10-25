@@ -1,4 +1,5 @@
 
+from .models import User
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -14,21 +15,50 @@ from .models import (
     DrugInteractionTranslation,
     DrugSource,
 )
+from django.contrib.auth.models import Group
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
 
 
+class PharmacistCreateSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(
+        write_only=True,
+        min_length=6
+    )
 
-class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
             "id",
             "username",
             "email",
-            "role",
+            "password",
         ]
-        read_only_fields = ["id", "role"]
+        read_only_fields = ["id"]
+
+    def create(self, validated_data):
+        return User.objects.create_user(
+            **validated_data,
+            role="pharmacist"
+        )
+
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data["user"] = {
+            "id": self.user.id,
+            "username": self.user.username,
+            "email": self.user.email,
+            "role": (
+                "superuser"
+                if self.user.is_superuser
+                else self.user.role
+            )
+        }
+        return data
+
 
 class LanguageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -41,6 +71,7 @@ class LanguageSerializer(serializers.ModelSerializer):
             "is_active",
         ]
         read_only_fields = ["id"]
+
 
 class CategoryTranslationSerializer(serializers.ModelSerializer):
     language_code = serializers.CharField(
@@ -60,6 +91,7 @@ class CategoryTranslationSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id"]
 
+
 class CategorySerializer(serializers.ModelSerializer):
     translations = CategoryTranslationSerializer(
         many=True,
@@ -74,6 +106,7 @@ class CategorySerializer(serializers.ModelSerializer):
             "translations",
         ]
         read_only_fields = ["id"]
+
 
 class DrugTranslationSerializer(serializers.ModelSerializer):
     language_code = serializers.CharField(
@@ -103,6 +136,7 @@ class DrugTranslationSerializer(serializers.ModelSerializer):
             "review_status",
             "updated_at",
         ]
+
 
 class DrugSerializer(serializers.ModelSerializer):
     categories = serializers.PrimaryKeyRelatedField(
@@ -138,7 +172,6 @@ class DrugSerializer(serializers.ModelSerializer):
         ]
 
 
-
 class DrugSourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = DrugSource
@@ -155,13 +188,13 @@ class DrugSourceSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
 
-
 class DrugWarningTranslationSerializer(
-    serializers.ModelSerializer):
+        serializers.ModelSerializer):
     language_code = serializers.CharField(
         source="language.code",
         read_only=True,
     )
+
     class Meta:
         model = DrugWarningTranslation
         fields = [
@@ -184,6 +217,7 @@ class DrugWarningTranslationSerializer(
             "reviewed_at",
             "updated_at",
         ]
+
 
 class DrugWarningSerializer(serializers.ModelSerializer):
     translations = DrugWarningTranslationSerializer(
@@ -243,7 +277,6 @@ class DrugInteractionTranslationSerializer(
         ]
 
 
-
 class DrugInteractionSerializer(serializers.ModelSerializer):
     drug_a_name = serializers.CharField(
         source="drug_a.generic_name",
@@ -257,7 +290,7 @@ class DrugInteractionSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
     )
-   
+
     class Meta:
         model = DrugInteraction
         fields = [
@@ -280,6 +313,7 @@ class DrugInteractionSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
     def get_translations(self, obj):
         published_translations = obj.translations.filter(
             review_status=DrugInteraction.Status.PUBLISHED
@@ -291,18 +325,18 @@ class DrugInteractionSerializer(serializers.ModelSerializer):
         ).data
 
     def validate(self, attrs):
-            drug_a = attrs.get(
-                "drug_a",
-                getattr(self.instance, "drug_a", None),
-            )
-            drug_b = attrs.get(
-                "drug_b",
-                getattr(self.instance, "drug_b", None),
-            )
+        drug_a = attrs.get(
+            "drug_a",
+            getattr(self.instance, "drug_a", None),
+        )
+        drug_b = attrs.get(
+            "drug_b",
+            getattr(self.instance, "drug_b", None),
+        )
 
-            if drug_a and drug_b and drug_a.pk == drug_b.pk:
-                raise serializers.ValidationError({
-                    "drug_b": "A drug cannot interact with itself."
-                })
+        if drug_a and drug_b and drug_a.pk == drug_b.pk:
+            raise serializers.ValidationError({
+                "drug_b": "A drug cannot interact with itself."
+            })
 
-            return attrs
+        return attrs

@@ -90,6 +90,7 @@ class DrugTranslation(models.Model):
         DRAFT = "draft", "Draft"
         REVIEWED = "reviewed", "Reviewed"
         PUBLISHED = "published", "Published"
+        REJECTED = "rejected", "Rejected"
 
     drug = models.ForeignKey(
         Drug,
@@ -144,6 +145,7 @@ class DrugInteraction(models.Model):
         DRAFT = "draft", "Draft"
         REVIEWED = "reviewed", "Reviewed"
         PUBLISHED = "published", "Published"
+        REJECTED = "rejected", "Rejected"
 
     drug_a = models.ForeignKey(
         Drug,
@@ -276,6 +278,7 @@ class DrugWarning(models.Model):
         DRAFT = "draft", "Draft"
         REVIEWED = "reviewed", "Reviewed"
         PUBLISHED = "published", "Published"
+        REJECTED = "rejected", "Rejected"
 
     drug = models.ForeignKey(
         Drug,

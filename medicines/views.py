@@ -1,4 +1,5 @@
 
+from rest_framework_simplejwt.views import TokenObtainPairView
 from django.db.models import Prefetch
 from rest_framework import generics
 from rest_framework.filters import SearchFilter
@@ -6,7 +7,7 @@ from django.db.models import Q, Prefetch
 from .models import (Drug, DrugTranslation, Language, Category,
                      CategoryTranslation, DrugWarning, DrugInteraction,
                      DrugInteractionTranslation, DrugWarningTranslation,
-                     DrugSource)
+                     DrugSource,User)
 from .serializers import (
     DrugSerializer,
     LanguageSerializer,
@@ -17,13 +18,15 @@ from .serializers import (
     DrugInteractionSerializer,
     DrugInteractionTranslationSerializer,
     DrugWarningTranslationSerializer,
-    DrugSourceSerializer
-
+    DrugSourceSerializer,
+    PharmacistCreateSerializer,
+    MyTokenObtainPairSerializer
 )
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .pagination import DrugPagination, CategoryPagination
+from .permissions import IsSuperuserOnly, IsPharmacist
 
 
 @api_view(["GET"])
@@ -38,6 +41,24 @@ def home(request):
             "drug_warnings": "/drugs/warnings/",
         }
     })
+
+
+class PharmacistListCreateView(generics.ListCreateAPIView):
+    permission_classes = [IsSuperuserOnly]
+    serializer_class = PharmacistCreateSerializer
+
+    def get_queryset(self):
+        return User.objects.filter(role="pharmacist")
+
+
+class PharmacistDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsSuperuserOnly]
+    serializer_class = PharmacistCreateSerializer
+    def get_queryset(self):
+         return User.objects.filter(role="pharmacist")
+
+class MyLogin(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
 
 
 class DrugListView(generics.ListAPIView):
@@ -252,9 +273,9 @@ class DrugInteractionTranslationListView(generics.ListAPIView):
         language_code = self.request.query_params.get("language")
 
         if language_code:
-                queryset = queryset.filter(
-                    language__code=language_code
-                )
+            queryset = queryset.filter(
+                language__code=language_code
+            )
 
         return queryset
 
@@ -267,6 +288,7 @@ class DrugInteractionTranslationCreateView(generics.CreateAPIView):
 class DrugWarningTranslationCreateView(generics.CreateAPIView):
     queryset = DrugWarningTranslation.objects.all()
     serializer_class = DrugWarningTranslationSerializer
+
 
 class DrugWarningTranslationListView(generics.ListAPIView):
     serializer_class = DrugWarningTranslationSerializer
@@ -282,11 +304,15 @@ class DrugWarningTranslationListView(generics.ListAPIView):
             )
 
         return queryset
+
+
 class DrugSourceListView(generics.ListAPIView):
     serializer_class = DrugSourceSerializer
 
     def get_queryset(self):
         return DrugSource.objects.all()
+
+
 class DrugSourceCreateView(generics.CreateAPIView):
     queryset = DrugSource.objects.all()
     serializer_class = DrugSourceSerializer
