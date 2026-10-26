@@ -1,3 +1,4 @@
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.db.models import Prefetch
@@ -65,7 +66,6 @@ class DrugListView(generics.ListAPIView):
     serializer_class = DrugSerializer
     pagination_class = DrugPagination
 
-    filter_backends = [SearchFilter]
 
     search_fields = [
         "generic_name",
@@ -100,12 +100,14 @@ class DrugListView(generics.ListAPIView):
                     ),
                 )
                 | Q(
-                    categories__translations__name__istartswith=search,
+                    categories__translations__name__icontains=search,
                     categories__translations__language__is_active=True,
                 )
             )
 
-        category = self.request.query_params.get("category")
+        category = self.request.query_params.get(
+            "category", ""
+        ).strip()
         if category:
             queryset = queryset.filter(
                 categories__slug=category
@@ -116,6 +118,7 @@ class DrugListView(generics.ListAPIView):
 
 class DrugDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = DrugSerializer
+    permission_classes=[IsSuperuserOnly]
     lookup_field = "id"
 
     def get_queryset(self):
@@ -147,6 +150,7 @@ class DrugDetailView(generics.RetrieveUpdateDestroyAPIView):
 class DrugCreateView(generics.CreateAPIView):
     queryset = Drug.objects.all()
     serializer_class = DrugSerializer
+    permission_classes=[IsSuperuserOnly]
 
 
 class LanguageListView(generics.ListAPIView):
@@ -154,27 +158,45 @@ class LanguageListView(generics.ListAPIView):
 
     def get_queryset(self):
         return Language.objects.filter(is_active=True)
+class LanguageDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = LanguageSerializer
+    queryset = Language.objects.all()
 
+    def get_permissions(self):
+        if self.request.method == "GET":
+            self.permission_classes = [AllowAny]
+        return super().get_permissions()
 
 class CategoryListView(generics.ListAPIView):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
     pagination_class = CategoryPagination
 
+class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CategorySerializer
+    
+    queryset=Category.objects.all()
+    def get_permissions(self):
+        if self.request.method == "GET":
+            self.permission_classes = [AllowAny]
+        return super().get_permissions()
 
 class LanguageCreateView(generics.CreateAPIView):
     queryset = Language.objects.all()
     serializer_class = LanguageSerializer
+    permission_classes=[IsSuperuserOnly]
 
 
 class CategoryCreateView(generics.CreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes=[IsSuperuserOnly]
 
 
 class CategoryTranslationCreateView(generics.CreateAPIView):
     queryset = CategoryTranslation.objects.all()
     serializer_class = CategoryTranslationSerializer
+    permission_classes = [IsSuperuserOnly]
 
 
 class CategoryTranslationListView(generics.ListAPIView):
@@ -196,6 +218,8 @@ class CategoryTranslationListView(generics.ListAPIView):
 class DrugTranslationCreateView(generics.CreateAPIView):
     queryset = DrugTranslation.objects.all()
     serializer_class = DrugTranslationSerializer
+    permission_classes = [IsSuperuserOnly]
+
 
 
 class DrugTranslationListView(generics.ListAPIView):
@@ -217,7 +241,7 @@ class DrugTranslationListView(generics.ListAPIView):
 class DrugWarningCreateView(generics.CreateAPIView):
     queryset = DrugWarning.objects.all()
     serializer_class = DrugWarningSerializer
-
+    permission_classes = [IsSuperuserOnly]
 
 class DrugWarningListView(generics.ListAPIView):
     serializer_class = DrugWarningSerializer
@@ -262,6 +286,8 @@ class DrugInteractionListView(generics.ListAPIView):
 
 class DrugInteractionCreateView(generics.CreateAPIView):
     serializer_class = DrugInteractionSerializer
+    permission_classes = [IsSuperuserOnly]
+
 
 
 class DrugInteractionTranslationListView(generics.ListAPIView):
@@ -283,11 +309,14 @@ class DrugInteractionTranslationListView(generics.ListAPIView):
 class DrugInteractionTranslationCreateView(generics.CreateAPIView):
     queryset = DrugInteractionTranslation.objects.all()
     serializer_class = DrugInteractionTranslationSerializer
+    permission_classes = [IsSuperuserOnly]
+
 
 
 class DrugWarningTranslationCreateView(generics.CreateAPIView):
     queryset = DrugWarningTranslation.objects.all()
     serializer_class = DrugWarningTranslationSerializer
+    permission_classes = [IsSuperuserOnly]
 
 
 class DrugWarningTranslationListView(generics.ListAPIView):
@@ -316,3 +345,4 @@ class DrugSourceListView(generics.ListAPIView):
 class DrugSourceCreateView(generics.CreateAPIView):
     queryset = DrugSource.objects.all()
     serializer_class = DrugSourceSerializer
+    permission_classes = [IsSuperuserOnly]

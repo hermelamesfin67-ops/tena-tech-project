@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (DrugListView, DrugDetailView, DrugCreateView, LanguageListView, CategoryListView, LanguageCreateView, CategoryCreateView, CategoryTranslationCreateView, CategoryTranslationListView, DrugTranslationListView,
                     DrugTranslationCreateView, DrugWarningListView, DrugWarningCreateView, home,
                     DrugInteractionListView, DrugInteractionCreateView, DrugInteractionTranslationCreateView, DrugWarningTranslationCreateView, DrugWarningTranslationListView,
-                    DrugInteractionTranslationListView, DrugSourceCreateView, DrugSourceListView, PharmacistDetailView, PharmacistListCreateView, MyLogin)
+                    DrugInteractionTranslationListView, DrugSourceCreateView, DrugSourceListView, PharmacistDetailView, PharmacistListCreateView,
+                     LanguageDetailView, MyLogin,CategoryDetailView)
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -17,7 +18,9 @@ urlpatterns = [
     path("drugs/<uuid:id>/", DrugDetailView.as_view(), name="drug-detail"),
     path("drugs/create/", DrugCreateView.as_view(), name="drug-create"),
     path("languages/", LanguageListView.as_view(), name="language-list"),
+    path("language/<uuid:id>/", LanguageDetailView.as_view(), name="language-detail"),
     path("categories/", CategoryListView.as_view(), name="category-list"),
+    path("categories/<uuid:id>/", CategoryDetailView.as_view(), name="category-detail"),
     path("languages/create/", LanguageCreateView.as_view(), name="language-create"),
     path("categories/create/", CategoryCreateView.as_view(), name="category-create"),
     path("categories/translations/create/",
@@ -47,4 +50,5 @@ urlpatterns = [
     path("drugs/sources/create/", DrugSourceCreateView.as_view(),
          name="drug-source-create"),
     path("drugs/sources/", DrugSourceListView.as_view(), name="drug-source-list"),
+    
 ]
