@@ -1,4 +1,6 @@
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.db.models import Prefetch
@@ -27,7 +29,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .pagination import DrugPagination, CategoryPagination
-from .permissions import IsSuperuserOnly, IsPharmacist
+from .permissions import IsSuperuserOnly, IsPharmacist, IsPharmacistOrSuperUser
 
 
 @api_view(["GET"])
@@ -310,6 +312,14 @@ class DrugInteractionTranslationListView(generics.ListAPIView):
         return queryset
 
 
+class DrugInteractionDetailView(generics.RetrieveAPIView):
+    queryset = DrugInteraction.objects.select_related(
+        "drug_a",
+        "drug_b",
+    )
+    serializer_class = DrugInteractionSerializer
+    permission_classes = [IsPharmacistOrSuperUser]
+
 class DrugInteractionTranslationCreateView(generics.CreateAPIView):
     queryset = DrugInteractionTranslation.objects.all()
     serializer_class = DrugInteractionTranslationSerializer
@@ -350,3 +360,177 @@ class DrugSourceCreateView(generics.CreateAPIView):
     queryset = DrugSource.objects.all()
     serializer_class = DrugSourceSerializer
     permission_classes = [IsSuperuserOnly]
+
+
+class DrugTranslationPublishView(APIView):
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def post(self, request, pk):
+        translation = get_object_or_404(
+            DrugTranslation,
+            pk=pk,
+        )
+
+        translation.review_status = "published"
+        translation.save(update_fields=["review_status"])
+
+        return Response(
+            {
+                "message": "Drug translation published successfully.",
+                "review_status": translation.review_status,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class DrugTranslationRejectView(APIView):
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def post(self, request, pk):
+        translation = get_object_or_404(
+            DrugTranslation,
+            pk=pk,
+        )
+
+        translation.review_status = "rejected"
+        translation.save(update_fields=["review_status"])
+
+        return Response(
+            {
+                "message": "Drug translation rejected.",
+                "review_status": translation.review_status,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class DrugWarningPublishView(APIView):
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def post(self, request, pk):
+        warning = get_object_or_404(
+            DrugWarning,
+            pk=pk,
+        )
+
+        warning.review_status = "published"
+        warning.save(update_fields=["review_status"])
+
+        return Response(
+            {
+                "message": "Drug warning published successfully.",
+                "id": str(warning.pk),
+                "review_status": warning.review_status,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class DrugWarningRejectView(APIView):
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def post(self, request, pk):
+        warning = get_object_or_404(
+            DrugWarning,
+            pk=pk,
+        )
+
+        warning.review_status = "rejected"
+        warning.save(update_fields=["review_status"])
+
+        return Response(
+            {
+                "message": "Drug warning rejected.",
+                "id": str(warning.pk),
+                "review_status": warning.review_status,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class DrugWarningTranslationPublishView(APIView):
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def post(self, request, pk):
+        translation = get_object_or_404(
+            DrugWarningTranslation,
+            pk=pk,
+        )
+
+        translation.review_status = "published"
+        translation.save(update_fields=["review_status"])
+
+        return Response(
+            {
+                "message": "Warning translation published successfully.",
+                "id": str(translation.pk),
+                "review_status": translation.review_status,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class DrugWarningTranslationRejectView(APIView):
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def post(self, request, pk):
+        translation = get_object_or_404(
+            DrugWarningTranslation,
+            pk=pk,
+        )
+
+        translation.review_status = "rejected"
+        translation.save(update_fields=["review_status"])
+
+        return Response(
+            {
+                "message": "Warning translation rejected.",
+                "id": str(translation.pk),
+                "review_status": translation.review_status,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class DrugInteractionPublishView(APIView):
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def post(self, request, pk):
+        interaction = get_object_or_404(
+            DrugInteraction,
+            pk=pk,
+        )
+
+        interaction.review_status = "published"
+        interaction.save(update_fields=["review_status"])
+
+        return Response(
+            {
+                "message": "Drug interaction published successfully.",
+                "id": str(interaction.pk),
+                "review_status": interaction.review_status,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class DrugInteractionRejectView(APIView):
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def post(self, request, pk):
+        interaction = get_object_or_404(
+            DrugInteraction,
+            pk=pk,
+        )
+
+        interaction.review_status = "rejected"
+        interaction.save(update_fields=["review_status"])
+
+        return Response(
+            {
+                "message": "Drug interaction rejected.",
+                "id": str(interaction.pk),
+                "review_status": interaction.review_status,
+            },
+            status=status.HTTP_200_OK,
+        )
