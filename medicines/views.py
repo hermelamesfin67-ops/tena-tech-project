@@ -118,7 +118,11 @@ class DrugListView(generics.ListAPIView):
 
 class DrugDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = DrugSerializer
-    permission_classes=[IsSuperuserOnly]
+    def get_permissions(self):
+        if self.request.method == "GET":
+            self.permission_classes = [AllowAny]
+        return super().get_permissions()
+
     lookup_field = "id"
 
     def get_queryset(self):
