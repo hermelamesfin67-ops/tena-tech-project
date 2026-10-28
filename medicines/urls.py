@@ -6,11 +6,10 @@ from .views import (DrugListView, DrugDetailView, DrugCreateView, LanguageListVi
                     LanguageDetailView, MyLogin, CategoryDetailView, DrugTranslationPublishView, DrugTranslationRejectView,
 
                     DrugWarningRejectView, DrugWarningPublishView, DrugWarningTranslationPublishView, DrugWarningTranslationRejectView,
-                    DrugInteractionRejectView, DrugInteractionDetailView, 
-                     DrugInteractionPublishView, 
-                    DrugInteractionTranslationRejectView,DrugInteractionTranslationPublishView,
-                    DrugTranslationDetailView, CategoryTranslationDetailView, DrugInteractionTranslationDetailView
-                    , DrugWarningDetailView, DrugSourceDetailView, DrugWarningTranslationDetailView,
+                    DrugInteractionRejectView, DrugInteractionDetailView,
+                    DrugInteractionPublishView,
+                    DrugInteractionTranslationRejectView, DrugInteractionTranslationPublishView,
+                    DrugTranslationDetailView, CategoryTranslationDetailView, DrugInteractionTranslationDetailView, DrugWarningDetailView, DrugSourceDetailView, DrugWarningTranslationDetailView,
                     DraftDrugTranslationListView, DraftDrugInteractionListView, DraftDrugWarningListView)
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -20,7 +19,7 @@ urlpatterns = [
     path("", home, name="home"),
     path("token/", MyLogin.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("create/pharmacist/", PharmacistListCreateView.as_view(),
+    path("pharmacist/", PharmacistListCreateView.as_view(),
          name="create_pharmacist"),
     path("pharmacist/detail/<int:pk>/",
          PharmacistDetailView.as_view(), name="detail_view"),
@@ -30,7 +29,7 @@ urlpatterns = [
     path("languages/", LanguageListView.as_view(), name="language-list"),
     path("language/<int:pk>/", LanguageDetailView.as_view(), name="language-detail"),
     path("categories/", CategoryListView.as_view(), name="category-list"),
-    path("categories/<int:pk>/",CategoryDetailView.as_view(),
+    path("categories/<int:pk>/", CategoryDetailView.as_view(),
          name="category-detail"),
     path("languages/create/", LanguageCreateView.as_view(), name="language-create"),
     path("categories/create/", CategoryCreateView.as_view(), name="category-create"),
@@ -104,7 +103,7 @@ urlpatterns = [
          name="drug-interaction-publish"),
     path("drugs/interactions/<int:pk>/reject/", DrugInteractionRejectView.as_view(),
          name="drug-interaction-reject"),
- 
+
     path(
         "drugs/interaction-translations/<int:pk>/publish/",
         DrugInteractionTranslationPublishView.as_view(),
