@@ -3,18 +3,24 @@ from .views import (DrugListView, DrugDetailView, DrugCreateView, LanguageListVi
                     DrugTranslationCreateView, DrugWarningListView, DrugWarningCreateView, home,
                     DrugInteractionListView, DrugInteractionCreateView, DrugInteractionTranslationCreateView, DrugWarningTranslationCreateView, DrugWarningTranslationListView,
                     DrugInteractionTranslationListView, DrugSourceCreateView, DrugSourceListView, PharmacistDetailView, PharmacistListCreateView,
-                     LanguageDetailView, MyLogin,CategoryDetailView, DrugTranslationPublishView, DrugTranslationRejectView,
+                    LanguageDetailView, MyLogin, CategoryDetailView, DrugTranslationPublishView, DrugTranslationRejectView,
 
-                    DrugWarningRejectView, DrugWarningPublishView,DrugWarningTranslationPublishView,DrugWarningTranslationRejectView,
-                    DrugInteractionRejectView,DrugInteractionDetailView)
+                    DrugWarningRejectView, DrugWarningPublishView, DrugWarningTranslationPublishView, DrugWarningTranslationRejectView,
+                    DrugInteractionRejectView, DrugInteractionDetailView, 
+                     DrugInteractionPublishView, 
+                    DrugInteractionTranslationRejectView,DrugInteractionTranslationPublishView,
+                    DrugTranslationDetailView, CategoryTranslationDetailView, DrugInteractionTranslationDetailView
+                    , DrugWarningDetailView, DrugSourceDetailView, DrugWarningTranslationDetailView)
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
 
 urlpatterns = [
     path("", home, name="home"),
     path("token/", MyLogin.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("create/pharmacist/",PharmacistListCreateView.as_view(),name="create_pharmacist"),
+    path("create/pharmacist/", PharmacistListCreateView.as_view(),
+         name="create_pharmacist"),
     path("pharmacist/detail/<int:pk>/",
          PharmacistDetailView.as_view(), name="detail_view"),
     path("drugs/", DrugListView.as_view(), name="drug-list"),
@@ -23,7 +29,8 @@ urlpatterns = [
     path("languages/", LanguageListView.as_view(), name="language-list"),
     path("language/<int:pk>/", LanguageDetailView.as_view(), name="language-detail"),
     path("categories/", CategoryListView.as_view(), name="category-list"),
-    path( "categories/<int:pk>/",CategoryDetailView.as_view(), name="category-detail"),
+    path("categories/<int:pk>/",CategoryDetailView.as_view(),
+         name="category-detail"),
     path("languages/create/", LanguageCreateView.as_view(), name="language-create"),
     path("categories/create/", CategoryCreateView.as_view(), name="category-create"),
     path("categories/translations/create/",
@@ -90,6 +97,53 @@ urlpatterns = [
         "drugs/interactions/<int:pk>/",
         DrugInteractionDetailView.as_view(),
         name="drug-interaction-detail",
+    ),
+
+    path("drugs/interactions/<int:pk>/publish/", DrugInteractionPublishView.as_view(),
+         name="drug-interaction-publish"),
+    path("drugs/interactions/<int:pk>/reject/", DrugInteractionRejectView.as_view(),
+         name="drug-interaction-reject"),
+ 
+    path(
+        "drugs/interaction-translations/<int:pk>/publish/",
+        DrugInteractionTranslationPublishView.as_view(),
+        name="interaction-translation-publish",
+    ),
+    path(
+        "drugs/interaction-translations/<int:pk>/reject/",
+        DrugInteractionTranslationRejectView.as_view(),
+        name="interaction-translation-reject",
+    ),
+
+    path(
+        "drug-translations/<int:pk>/",
+        DrugTranslationDetailView.as_view(),
+        name="drug-translation-detail",
+    ),
+    path(
+        "category-translations/<int:pk>/",
+        CategoryTranslationDetailView.as_view(),
+        name="category-translation-detail",
+    ),
+    path(
+        "drug-interaction-translations/<int:pk>/",
+        DrugInteractionTranslationDetailView.as_view(),
+        name="drug-interaction-translation-detail",
+    ),
+    path(
+        "drug-warnings/<int:pk>/",
+        DrugWarningDetailView.as_view(),
+        name="drug-warning-detail",
+    ),
+    path(
+        "drug-warning-translations/<int:pk>/",
+        DrugWarningTranslationDetailView.as_view(),
+        name="drug-warning-translation-detail",
+    ),
+    path(
+        "drug-sources/<int:pk>/",
+        DrugSourceDetailView.as_view(),
+        name="drug-source-detail",
     ),
 
 

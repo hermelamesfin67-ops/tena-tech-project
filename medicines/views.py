@@ -123,6 +123,9 @@ class DrugDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_permissions(self):
         if self.request.method == "GET":
             self.permission_classes = [AllowAny]
+        else:
+            self.permission_classes = [IsSuperuserOnly]
+
         return super().get_permissions()
 
     lookup_field = "id"
@@ -185,6 +188,9 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_permissions(self):
         if self.request.method == "GET":
             self.permission_classes = [AllowAny]
+        else:
+            self.permission_classes = [IsSuperuserOnly]
+
         return super().get_permissions()
 
 class LanguageCreateView(generics.CreateAPIView):
@@ -312,14 +318,19 @@ class DrugInteractionTranslationListView(generics.ListAPIView):
         return queryset
 
 
-class DrugInteractionDetailView(generics.RetrieveAPIView):
+class DrugInteractionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = DrugInteraction.objects.select_related(
         "drug_a",
         "drug_b",
     )
     serializer_class = DrugInteractionSerializer
-    permission_classes = [IsPharmacistOrSuperUser]
 
+    def get_permissions(self):
+        if self.request.method == "GET":
+            self.permission_classes = [AllowAny]
+        else:
+            self.permission_classes = [IsSuperuserOnly]
+        return super().get_permissions()
 class DrugInteractionTranslationCreateView(generics.CreateAPIView):
     queryset = DrugInteractionTranslation.objects.all()
     serializer_class = DrugInteractionTranslationSerializer
@@ -370,6 +381,15 @@ class DrugTranslationPublishView(APIView):
             DrugTranslation,
             pk=pk,
         )
+        if translation.review_status == "published":
+            return Response(
+                {
+                    "message": "This drug translation is already published.",
+                    "review_status": translation.review_status,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
 
         translation.review_status = "published"
         translation.save(update_fields=["review_status"])
@@ -391,6 +411,14 @@ class DrugTranslationRejectView(APIView):
             DrugTranslation,
             pk=pk,
         )
+        if translation.review_status == "rejected":
+            return Response(
+                {
+                    "message": "This drug translation is already rejected.",
+                    "review_status": translation.review_status,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         translation.review_status = "rejected"
         translation.save(update_fields=["review_status"])
@@ -412,6 +440,14 @@ class DrugWarningPublishView(APIView):
             DrugWarning,
             pk=pk,
         )
+        if warning.review_status == "published":
+            return Response(
+                {
+                    "message": "This drug warning is already published.",
+                    "review_status": warning.review_status,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         warning.review_status = "published"
         warning.save(update_fields=["review_status"])
@@ -434,6 +470,14 @@ class DrugWarningRejectView(APIView):
             DrugWarning,
             pk=pk,
         )
+        if warning.review_status == "rejected":
+            return Response(
+                {
+                    "message": "This drug warning is already rejected.",
+                    "review_status": warning.review_status,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         warning.review_status = "rejected"
         warning.save(update_fields=["review_status"])
@@ -456,6 +500,14 @@ class DrugWarningTranslationPublishView(APIView):
             DrugWarningTranslation,
             pk=pk,
         )
+        if translation.review_status == "published":
+            return Response(
+                {
+                    "message": "This drug warning translation is already published.",
+                    "review_status": translation.review_status,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         translation.review_status = "published"
         translation.save(update_fields=["review_status"])
@@ -478,6 +530,14 @@ class DrugWarningTranslationRejectView(APIView):
             DrugWarningTranslation,
             pk=pk,
         )
+        if translation.review_status == "rejected":
+            return Response(
+                {
+                    "message": "This drug warning translation is already rejected.",
+                    "review_status": translation.review_status,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         translation.review_status = "rejected"
         translation.save(update_fields=["review_status"])
@@ -500,6 +560,14 @@ class DrugInteractionPublishView(APIView):
             DrugInteraction,
             pk=pk,
         )
+        if interaction.review_status == "published":
+            return Response(
+                {
+                    "message": "This drug interaction is already published.",
+                    "review_status": interaction.review_status,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         interaction.review_status = "published"
         interaction.save(update_fields=["review_status"])
@@ -522,6 +590,14 @@ class DrugInteractionRejectView(APIView):
             DrugInteraction,
             pk=pk,
         )
+        if interaction.review_status == "rejected":
+            return Response(
+                {
+                    "message": "This drug interaction is already rejected.",
+                    "review_status": interaction.review_status,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         interaction.review_status = "rejected"
         interaction.save(update_fields=["review_status"])
@@ -534,3 +610,130 @@ class DrugInteractionRejectView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class DrugInteractionTranslationPublishView(APIView):
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def post(self, request, pk):
+        translation = get_object_or_404(
+            DrugInteractionTranslation,
+            pk=pk,
+        )
+        if translation.review_status == "published":
+            return Response(
+                {
+                    "message": "This drug interaction translation is already published.",
+                    "review_status": translation.review_status,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        translation.review_status = "published"
+        translation.save(update_fields=["review_status"])
+
+        return Response(
+            {
+                "message": "Interaction translation published successfully.",
+            })
+
+
+class DrugInteractionTranslationRejectView(APIView):
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def post(self, request, pk):
+        translation = get_object_or_404(
+            DrugInteractionTranslation,
+            pk=pk,
+        )
+        if translation.review_status == "rejected":
+            return Response(
+                {
+                    "message": "This drug interaction translation is already rejected.",
+                    "review_status": translation.review_status,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        translation.review_status = "rejected"
+        translation.save(update_fields=["review_status"])
+
+        return Response(
+            {
+                "message": "Interaction translation rejected.",
+                "id": str(translation.pk),
+                "review_status": translation.review_status,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class DrugTranslationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = DrugTranslation.objects.select_related(
+        "drug", "language"
+    )
+    serializer_class = DrugTranslationSerializer
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            self.permission_classes = [AllowAny]
+        else:
+            self.permission_classes = [IsSuperuserOnly]
+        return super().get_permissions()
+
+
+class CategoryTranslationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = CategoryTranslation.objects.select_related(
+        "category", "language"
+    )
+    serializer_class = CategoryTranslationSerializer
+    def get_permissions(self):
+        if self.request.method == "GET":
+            self.permission_classes = [AllowAny]
+        else:
+            self.permission_classes = [IsSuperuserOnly]
+        return super().get_permissions()
+
+class DrugInteractionTranslationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = DrugInteractionTranslation.objects.select_related(
+        "interaction", "language"
+    )
+    serializer_class = DrugInteractionTranslationSerializer
+    def get_permissions(self):
+        if self.request.method == "GET":
+            self.permission_classes = [AllowAny]
+        else:
+            self.permission_classes = [IsSuperuserOnly]
+        return super().get_permissions()
+
+class DrugWarningDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = DrugWarning.objects.all()
+    serializer_class = DrugWarningSerializer
+    def get_permissions(self):
+        if self.request.method == "GET":
+            self.permission_classes = [AllowAny]
+        else:
+            self.permission_classes = [IsSuperuserOnly]
+        return super().get_permissions()
+
+class DrugWarningTranslationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = DrugWarningTranslation.objects.select_related(
+        "warning", "language"
+    )
+    serializer_class = DrugWarningTranslationSerializer
+    def get_permissions(self):
+        if self.request.method == "GET":
+            self.permission_classes = [AllowAny]
+        else:
+            self.permission_classes = [IsSuperuserOnly]
+        return super().get_permissions()
+
+class DrugSourceDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = DrugSource.objects.all()
+    serializer_class = DrugSourceSerializer
+    def get_permissions(self):
+        if self.request.method == "GET":
+            self.permission_classes = [AllowAny]
+        else:
+            self.permission_classes = [IsSuperuserOnly]
+        return super().get_permissions()
