@@ -757,6 +757,15 @@ class DraftDrugTranslationListView(generics.ListAPIView):
         ).select_related("drug", "language")
 
 
+class DraftDrugTranslationDetailView(generics.RetrieveAPIView):
+    serializer_class = DrugTranslationSerializer
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def get_queryset(self):
+        return DrugTranslation.objects.filter(
+            review_status="draft"
+        ).select_related("drug", "language")
+
 class DraftDrugWarningListView(generics.ListAPIView):
     serializer_class = DrugWarningSerializer
     permission_classes = [IsPharmacistOrSuperUser]
@@ -768,9 +777,32 @@ class DraftDrugWarningListView(generics.ListAPIView):
             "translations",
             "sources",
         )
+
+
+class DraftDrugWarningDetailView(generics.RetrieveAPIView):
+    serializer_class = DrugWarningSerializer
+    permission_classes = [IsPharmacistOrSuperUser]
+    queryset = DrugWarning.objects.all()
     
 
+
 class DraftDrugInteractionListView(generics.ListAPIView):
+    serializer_class = DrugInteractionSerializer
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def get_queryset(self):
+        return DrugInteraction.objects.filter(
+            review_status="draft"
+        ).select_related(
+            "drug_a",
+            "drug_b",
+        ).prefetch_related(
+            "translations",
+            "sources",
+        )
+
+
+class DraftDrugInteractionDetailView(generics.RetrieveAPIView):
     serializer_class = DrugInteractionSerializer
     permission_classes = [IsPharmacistOrSuperUser]
 

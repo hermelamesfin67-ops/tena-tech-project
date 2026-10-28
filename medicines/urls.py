@@ -10,7 +10,7 @@ from .views import (DrugListView, DrugDetailView, DrugCreateView, LanguageListVi
                     DrugInteractionPublishView,
                     DrugInteractionTranslationRejectView, DrugInteractionTranslationPublishView,
                     DrugTranslationDetailView, CategoryTranslationDetailView, DrugInteractionTranslationDetailView, DrugWarningDetailView, DrugSourceDetailView, DrugWarningTranslationDetailView,
-                    DraftDrugTranslationListView, DraftDrugInteractionListView, DraftDrugWarningListView)
+                    DraftDrugTranslationListView, DraftDrugInteractionListView, DraftDrugWarningListView, DraftDrugTranslationDetailView, DraftDrugWarningDetailView, DraftDrugInteractionDetailView)
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -159,5 +159,20 @@ urlpatterns = [
         "drug-interactions/drafts/",
         DraftDrugInteractionListView.as_view(),
         name="draft-drug-interactions",
+    ),
+    path(
+        "drug-interactions/drafts/<int:pk>/",
+        DraftDrugInteractionDetailView.as_view(),
+        name="draft-drug-interaction-detail",
+    ),
+    path(
+        "drug-warnings/drafts/<int:pk>/",
+        DraftDrugWarningDetailView.as_view(),
+        name="draft-drug-warning-detail",
+    ),
+    path(
+        "drug-translation/drafts/<int:pk>/",
+        DraftDrugTranslationDetailView.as_view(),
+        name="draft-drug-warning-detail",
     ),
 ]
