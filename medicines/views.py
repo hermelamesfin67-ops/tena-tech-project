@@ -57,7 +57,13 @@ class PharmacistListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         return User.objects.filter(role="pharmacist")
 
+class PharmacistRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsPharmacistOrSuperUser]
+    serializer_class = PharmacistCreateSerializer
 
+    def get_object(self):
+        user = self.request.user
+        return user
 class PharmacistDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsSuperuserOnly]
     serializer_class = PharmacistCreateSerializer
@@ -415,25 +421,36 @@ class DrugTranslationRejectView(APIView):
             DrugTranslation,
             pk=pk,
         )
-        if translation.review_status == "rejected":
+
+        reason = request.data.get("reason", "").strip()
+
+        if not reason:
+            return Response(
+                {"reason": "Rejection reason is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if translation.review_status in ["published", "rejected"]:
             return Response(
                 {
-                    "message": "This drug translation is already rejected.",
+                    "detail": "Only a non-published, non-rejected translation can be rejected.",
                     "review_status": translation.review_status,
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         translation.review_status = "rejected"
-        translation.save(update_fields=["review_status"])
-
-        return Response(
-            {
-                "message": "Drug translation rejected.",
-                "review_status": translation.review_status,
-            },
-            status=status.HTTP_200_OK,
+        translation.rejection_reason = reason
+        translation.save(
+            update_fields=["review_status", "rejection_reason"]
         )
+
+        return Response({
+            "message": "Drug translation rejected successfully.",
+            "id": translation.pk,
+            "review_status": translation.review_status,
+            "rejection_reason": translation.rejection_reason,
+        }, status=status.HTTP_200_OK)
 
 
 class DrugWarningPublishView(APIView):
@@ -470,31 +487,50 @@ class DrugWarningRejectView(APIView):
     permission_classes = [IsPharmacistOrSuperUser]
 
     def post(self, request, pk):
-        warning = get_object_or_404(
-            DrugWarning,
-            pk=pk,
-        )
-        if warning.review_status == "rejected":
+        try:
+            warning = DrugWarning.objects.get(pk=pk)
+        except DrugWarning.DoesNotExist:
+            return Response(
+                {"detail": "Drug warning not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        reason = request.data.get("reason", "").strip()
+
+        if not reason:
+            return Response(
+                {"reason": "A rejection reason is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if warning.review_status != "draft":
             return Response(
                 {
-                    "message": "This drug warning is already rejected.",
-                    "review_status": warning.review_status,
+                    "detail": (
+                        "Only draft warnings can be rejected."
+                    )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         warning.review_status = "rejected"
-        warning.save(update_fields=["review_status"])
+        warning.rejection_reason = reason
+        warning.save(
+            update_fields=[
+                "review_status",
+                "rejection_reason",
+            ]
+        )
 
         return Response(
             {
-                "message": "Drug warning rejected.",
-                "id": str(warning.pk),
+                "message": "Drug warning rejected successfully.",
+                "id": warning.pk,
                 "review_status": warning.review_status,
+                "rejection_reason": warning.rejection_reason,
             },
             status=status.HTTP_200_OK,
         )
-
 
 class DrugWarningTranslationPublishView(APIView):
     permission_classes = [IsPharmacistOrSuperUser]
@@ -534,23 +570,45 @@ class DrugWarningTranslationRejectView(APIView):
             DrugWarningTranslation,
             pk=pk,
         )
+
+        reason = request.data.get("reason", "").strip()
+
+        if not reason:
+            return Response(
+                {"reason": "Rejection reason is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if translation.review_status == "published":
+            return Response(
+                {
+                    "message": "This translation is already published and cannot be rejected directly.",
+                    "review_status": translation.review_status,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         if translation.review_status == "rejected":
             return Response(
                 {
-                    "message": "This drug warning translation is already rejected.",
+                    "message": "This translation is already rejected.",
                     "review_status": translation.review_status,
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         translation.review_status = "rejected"
-        translation.save(update_fields=["review_status"])
+        translation.rejection_reason = reason
+        translation.save(
+            update_fields=["review_status", "rejection_reason"]
+        )
 
         return Response(
             {
-                "message": "Warning translation rejected.",
-                "id": str(translation.pk),
+                "message": "Drug warning translation rejected successfully.",
+                "id": translation.pk,
                 "review_status": translation.review_status,
+                "rejection_reason": translation.rejection_reason,
             },
             status=status.HTTP_200_OK,
         )
@@ -594,27 +652,36 @@ class DrugInteractionRejectView(APIView):
             DrugInteraction,
             pk=pk,
         )
-        if interaction.review_status == "rejected":
+
+        reason = request.data.get("reason", "").strip()
+
+        if not reason:
+            return Response(
+                {"reason": "Rejection reason is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if interaction.review_status in ["published", "rejected"]:
             return Response(
                 {
-                    "message": "This drug interaction is already rejected.",
+                    "detail": "Only a non-published, non-rejected interaction can be rejected.",
                     "review_status": interaction.review_status,
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         interaction.review_status = "rejected"
-        interaction.save(update_fields=["review_status"])
-
-        return Response(
-            {
-                "message": "Drug interaction rejected.",
-                "id": str(interaction.pk),
-                "review_status": interaction.review_status,
-            },
-            status=status.HTTP_200_OK,
+        interaction.rejection_reason = reason
+        interaction.save(
+            update_fields=["review_status", "rejection_reason"]
         )
 
+        return Response({
+            "message": "Drug interaction rejected successfully.",
+            "id": interaction.pk,
+            "review_status": interaction.review_status,
+            "rejection_reason": interaction.rejection_reason,
+        }, status=status.HTTP_200_OK)
 
 class DrugInteractionTranslationPublishView(APIView):
     permission_classes = [IsPharmacistOrSuperUser]
@@ -650,27 +717,36 @@ class DrugInteractionTranslationRejectView(APIView):
             DrugInteractionTranslation,
             pk=pk,
         )
-        if translation.review_status == "rejected":
+
+        reason = request.data.get("reason", "").strip()
+
+        if not reason:
+            return Response(
+                {"reason": "Rejection reason is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if translation.review_status in ["published", "rejected"]:
             return Response(
                 {
-                    "message": "This drug interaction translation is already rejected.",
+                    "detail": "Only a non-published, non-rejected translation can be rejected.",
                     "review_status": translation.review_status,
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         translation.review_status = "rejected"
-        translation.save(update_fields=["review_status"])
-
-        return Response(
-            {
-                "message": "Interaction translation rejected.",
-                "id": str(translation.pk),
-                "review_status": translation.review_status,
-            },
-            status=status.HTTP_200_OK,
+        translation.rejection_reason = reason
+        translation.save(
+            update_fields=["review_status", "rejection_reason"]
         )
 
+        return Response({
+            "message": "Drug interaction translation rejected successfully.",
+            "id": translation.pk,
+            "review_status": translation.review_status,
+            "rejection_reason": translation.rejection_reason,
+        }, status=status.HTTP_200_OK)
 
 class DrugTranslationDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = DrugTranslation.objects.select_related(
@@ -756,6 +832,13 @@ class DraftDrugTranslationListView(generics.ListAPIView):
             review_status="draft"
         ).select_related("drug", "language")
 
+class RejectDrugTranslationListView(generics.ListAPIView):
+    serializer_class = DrugTranslationSerializer
+    permission_classes = [IsPharmacistOrSuperUser]
+    def get_queryset(self):
+        return DrugTranslation.objects.filter(
+            review_status="reject"
+        ).select_related("drug", "language")
 
 class DraftDrugTranslationDetailView(generics.RetrieveAPIView):
     serializer_class = DrugTranslationSerializer
@@ -764,6 +847,16 @@ class DraftDrugTranslationDetailView(generics.RetrieveAPIView):
     def get_queryset(self):
         return DrugTranslation.objects.filter(
             review_status="draft"
+        ).select_related("drug", "language")
+
+
+class RejectDrugTranslationDetailView(generics.RetrieveAPIView):
+    serializer_class = DrugTranslationSerializer
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def get_queryset(self):
+        return DrugTranslation.objects.filter(
+            review_status="reject"
         ).select_related("drug", "language")
 
 class DraftDrugWarningListView(generics.ListAPIView):
@@ -777,6 +870,17 @@ class DraftDrugWarningListView(generics.ListAPIView):
             "translations",
             "sources",
         )
+class RejectDrugWarningListView(generics.ListAPIView):
+    serializer_class = DrugWarningSerializer
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def get_queryset(self):
+        return DrugWarning.objects.filter(
+            review_status="reject"
+        ).select_related("drug").prefetch_related(
+            "translations",
+            "sources",
+        )
 
 
 class DraftDrugWarningDetailView(generics.RetrieveAPIView):
@@ -784,7 +888,11 @@ class DraftDrugWarningDetailView(generics.RetrieveAPIView):
     permission_classes = [IsPharmacistOrSuperUser]
     queryset = DrugWarning.objects.all()
     
-
+class RejectDrugWarningDetailView(generics.RetrieveAPIView):
+    serializer_class = DrugWarningSerializer
+    permission_classes = [IsPharmacistOrSuperUser]
+    queryset = DrugWarning.objects.all()
+    
 
 class DraftDrugInteractionListView(generics.ListAPIView):
     serializer_class = DrugInteractionSerializer
@@ -793,6 +901,20 @@ class DraftDrugInteractionListView(generics.ListAPIView):
     def get_queryset(self):
         return DrugInteraction.objects.filter(
             review_status="draft"
+        ).select_related(
+            "drug_a",
+            "drug_b",
+        ).prefetch_related(
+            "translations",
+            "sources",
+        )
+class RejectDrugInteractionListView(generics.ListAPIView):
+    serializer_class = DrugInteractionSerializer
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def get_queryset(self):
+        return DrugInteraction.objects.filter(
+            review_status="reject"
         ).select_related(
             "drug_a",
             "drug_b",
@@ -809,6 +931,19 @@ class DraftDrugInteractionDetailView(generics.RetrieveAPIView):
     def get_queryset(self):
         return DrugInteraction.objects.filter(
             review_status="draft"
+        ).select_related(
+            "drug_a",
+            "drug_b",
+        ).prefetch_related(
+            "translations",
+            "sources",)
+class RejectDrugInteractionDetailView(generics.RetrieveAPIView):
+    serializer_class = DrugInteractionSerializer
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def get_queryset(self):
+        return DrugInteraction.objects.filter(
+            review_status="reject"
         ).select_related(
             "drug_a",
             "drug_b",

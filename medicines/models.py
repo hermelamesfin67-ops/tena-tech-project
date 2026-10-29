@@ -117,6 +117,10 @@ class DrugTranslation(models.Model):
         choices=Status.choices,
         default=Status.DRAFT,
     )
+    rejection_reason = models.TextField(
+        blank=True,
+        default="",
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -168,7 +172,10 @@ class DrugInteraction(models.Model):
         choices=Status.choices,
         default=Status.DRAFT,
     )
-
+    rejection_reason = models.TextField(
+        blank=True,
+        default="",
+    )
     sources = models.ManyToManyField(
         "DrugSource",
         related_name="interactions",
@@ -298,6 +305,10 @@ class DrugWarning(models.Model):
         max_length=20,
         choices=Status.choices,
         default=Status.DRAFT,
+    )
+    rejection_reason = models.TextField(
+        blank=True,
+        default="",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
