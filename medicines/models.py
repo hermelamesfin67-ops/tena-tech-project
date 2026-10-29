@@ -334,7 +334,10 @@ class DrugWarningTranslation(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     recommended_action = models.TextField(blank=True)
-
+    rejection_reason = models.TextField(
+            blank=True,
+            default="",
+        )
     review_status = models.CharField(
         max_length=20,
         choices=DrugWarning.Status.choices,
