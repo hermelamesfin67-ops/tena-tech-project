@@ -76,7 +76,11 @@ class Drug(models.Model):
         related_name="drugs",
         blank=True,
     )
-
+    sources = models.ManyToManyField(
+        "DrugSource",
+        related_name="drugs",
+        blank=True,
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -145,11 +149,7 @@ class DrugInteraction(models.Model):
         CONTRAINDICATED = "contraindicated", "Contraindicated"
         UNKNOWN = "unknown", "Unknown"
 
-    class Status(models.TextChoices):
-        DRAFT = "draft", "Draft"
-        REVIEWED = "reviewed", "Reviewed"
-        PUBLISHED = "published", "Published"
-        REJECTED = "rejected", "Rejected"
+    
 
     drug_a = models.ForeignKey(
         Drug,
@@ -167,15 +167,7 @@ class DrugInteraction(models.Model):
         choices=Severity.choices,
         default=Severity.UNKNOWN,
     )
-    review_status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.DRAFT,
-    )
-    rejection_reason = models.TextField(
-        blank=True,
-        default="",
-    )
+    
     sources = models.ManyToManyField(
         "DrugSource",
         related_name="interactions",
@@ -225,7 +217,11 @@ class DrugInteraction(models.Model):
 
 class DrugInteractionTranslation(models.Model):
     """Stores interaction explanations in individual languages."""
-
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        REVIEWED = "reviewed", "Reviewed"
+        PUBLISHED = "published", "Published"
+        REJECTED = "rejected", "Rejected"
     interaction = models.ForeignKey(
         DrugInteraction,
         on_delete=models.CASCADE,
@@ -242,9 +238,13 @@ class DrugInteractionTranslation(models.Model):
 
     review_status = models.CharField(
         max_length=20,
-        choices=DrugInteraction.Status.choices,
-        default=DrugInteraction.Status.DRAFT,
+        choices=Status.choices,
+        default=Status.DRAFT,
     )
+    rejection_reason = models.TextField(
+            blank=True,
+            default="",
+        )
     reviewed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -281,11 +281,7 @@ class DrugWarning(models.Model):
         BREASTFEEDING = "breastfeeding", "Breastfeeding"
         OTHER = "other", "Other"
 
-    class Status(models.TextChoices):
-        DRAFT = "draft", "Draft"
-        REVIEWED = "reviewed", "Reviewed"
-        PUBLISHED = "published", "Published"
-        REJECTED = "rejected", "Rejected"
+    
 
     drug = models.ForeignKey(
         Drug,
@@ -301,15 +297,8 @@ class DrugWarning(models.Model):
         related_name="warnings",
         blank=True,
     )
-    review_status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.DRAFT,
-    )
-    rejection_reason = models.TextField(
-        blank=True,
-        default="",
-    )
+    
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -319,7 +308,13 @@ class DrugWarning(models.Model):
 
 class DrugWarningTranslation(models.Model):
     """Stores warning details in individual languages."""
-
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        REVIEWED = "reviewed", "Reviewed"
+        PUBLISHED = "published", "Published"
+        REJECTED = "rejected", "Rejected"
+    
+        
     warning = models.ForeignKey(
         DrugWarning,
         on_delete=models.CASCADE,
@@ -340,8 +335,8 @@ class DrugWarningTranslation(models.Model):
         )
     review_status = models.CharField(
         max_length=20,
-        choices=DrugWarning.Status.choices,
-        default=DrugWarning.Status.DRAFT,
+        choices=Status.choices,
+        default=Status.DRAFT,
     )
     reviewed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

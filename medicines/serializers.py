@@ -1,4 +1,5 @@
 
+from django.db.models import Q, Prefetch
 from .models import User
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -137,7 +138,10 @@ class DrugTranslationSerializer(serializers.ModelSerializer):
             "review_status",
             "updated_at",
         ]
+    def update(self, instance, validated_data):
+        validated_data["review_status"] = "draft"
 
+        return super().update(instance, validated_data)
 
 class DrugSerializer(serializers.ModelSerializer):
     categories = serializers.PrimaryKeyRelatedField(
@@ -160,6 +164,7 @@ class DrugSerializer(serializers.ModelSerializer):
             "strength",
             "dosage_form",
             "categories",
+            "sources",
             "translations",
             "is_active",
             "created_at",
@@ -219,8 +224,10 @@ class DrugWarningTranslationSerializer(
             "reviewed_at",
             "updated_at",
         ]
+    def update(self, instance, validated_data):
+        validated_data["review_status"] = "draft"
 
-
+        return super().update(instance, validated_data)
 class DrugWarningSerializer(serializers.ModelSerializer):
     translations = DrugWarningTranslationSerializer(
         many=True,
@@ -234,8 +241,6 @@ class DrugWarningSerializer(serializers.ModelSerializer):
             "drug",
             "warning_type",
             "sources",
-            "review_status",
-            "rejection_reason",
             "translations",
             "created_at",
             "updated_at",
@@ -279,7 +284,10 @@ class DrugInteractionTranslationSerializer(
             "reviewed_at",
             "updated_at",
         ]
+    def update(self, instance, validated_data):
+        validated_data["review_status"] = "draft"
 
+        return super().update(instance, validated_data)
 
 class DrugInteractionSerializer(serializers.ModelSerializer):
     drug_a_name = serializers.CharField(
@@ -290,10 +298,8 @@ class DrugInteractionSerializer(serializers.ModelSerializer):
         source="drug_b.generic_name",
         read_only=True,
     )
-    translations = DrugInteractionTranslationSerializer(
-        many=True,
-        read_only=True,
-    )
+
+    translations = serializers.SerializerMethodField()
 
     class Meta:
         model = DrugInteraction
@@ -305,15 +311,12 @@ class DrugInteractionSerializer(serializers.ModelSerializer):
             "drug_b_name",
             "severity",
             "sources",
-            "review_status",
-            "rejection_reason",
             "translations",
             "created_at",
             "updated_at",
         ]
         read_only_fields = [
             "id",
-            "review_status",
             "translations",
             "created_at",
             "updated_at",
@@ -321,8 +324,9 @@ class DrugInteractionSerializer(serializers.ModelSerializer):
 
     def get_translations(self, obj):
         published_translations = obj.translations.filter(
-            review_status=DrugInteraction.Status.PUBLISHED
+            review_status="published"
         )
+
         return DrugInteractionTranslationSerializer(
             published_translations,
             many=True,
@@ -343,5 +347,22 @@ class DrugInteractionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 "drug_b": "A drug cannot interact with itself."
             })
+
+        if drug_a and drug_b:
+            existing = DrugInteraction.objects.filter(
+                Q(drug_a=drug_a, drug_b=drug_b)
+                | Q(drug_a=drug_b, drug_b=drug_a)
+            )
+
+            if self.instance:
+                existing = existing.exclude(pk=self.instance.pk)
+
+            if existing.exists():
+                raise serializers.ValidationError({
+                    "detail": (
+                        "An interaction between these two drugs "
+                        "already exists."
+                    )
+                })
 
         return attrs

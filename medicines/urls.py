@@ -5,15 +5,19 @@ from .views import (DrugListView, DrugDetailView, DrugCreateView, LanguageListVi
                     DrugInteractionTranslationListView, DrugSourceCreateView, DrugSourceListView, PharmacistDetailView, PharmacistListCreateView,
                     LanguageDetailView, MyLogin, CategoryDetailView, DrugTranslationPublishView, DrugTranslationRejectView,
 
-                    DrugWarningRejectView, DrugWarningPublishView, DrugWarningTranslationPublishView, DrugWarningTranslationRejectView,
-                    DrugInteractionRejectView, DrugInteractionDetailView,
-                    DrugInteractionPublishView,
+                    DrugWarningTranslationPublishView, DrugWarningTranslationRejectView,
+                    DrugInteractionDetailView,
+                    
                     DrugInteractionTranslationRejectView, DrugInteractionTranslationPublishView,
-                    DrugTranslationDetailView, CategoryTranslationDetailView, DrugInteractionTranslationDetailView, DrugWarningDetailView, DrugSourceDetailView, DrugWarningTranslationDetailView,
-                    DraftDrugTranslationListView, DraftDrugInteractionListView,
-                    DraftDrugWarningListView, DraftDrugTranslationDetailView,
-                    DraftDrugWarningDetailView, DraftDrugInteractionDetailView, RejectDrugTranslationListView, RejectDrugTranslationDetailView, RejectDrugWarningListView, RejectDrugInteractionListView, 
-                    RejectDrugWarningDetailView, RejectDrugInteractionDetailView, PharmacistRetrieveUpdateAPIView)
+                    DrugTranslationDetailView, CategoryTranslationDetailView, DrugInteractionTranslationDetailView, 
+                    DrugWarningDetailView, DrugSourceDetailView, DrugWarningTranslationDetailView,
+                    DraftDrugTranslationListView,
+                    DraftDrugTranslationDetailView,
+                    RejectDrugTranslationListView, RejectDrugTranslationDetailView, 
+                    PharmacistRetrieveUpdateAPIView, RejectDrugWarningTranslationListView, 
+                    DraftDrugWarningTranslationListView, RejectDrugWarningTranslationDetailView, 
+                    DraftDrugWarningTranslationDetailView, RejectDrugInteractionTranslationDetailView,DraftDrugInteractionTranslationDetailView,
+                    RejectDrugInteractionTranslationListView, DraftDrugInteractionTranslationListView)
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -77,16 +81,6 @@ urlpatterns = [
         name="drug-translation-reject",
     ),
 
-    path(
-        "drugs/warnings/<int:pk>/publish/",
-        DrugWarningPublishView.as_view(),
-        name="drug-warning-publish",
-    ),
-    path(
-        "drugs/warnings/<int:pk>/reject/",
-        DrugWarningRejectView.as_view(),
-        name="drug-warning-reject",
-    ),
 
     path(
         "drugs/warnings/translations/<int:pk>/publish/",
@@ -103,11 +97,6 @@ urlpatterns = [
         DrugInteractionDetailView.as_view(),
         name="drug-interaction-detail",
     ),
-
-    path("drugs/interactions/<int:pk>/publish/", DrugInteractionPublishView.as_view(),
-         name="drug-interaction-publish"),
-    path("drugs/interactions/<int:pk>/reject/", DrugInteractionRejectView.as_view(),
-         name="drug-interaction-reject"),
 
     path(
         "drugs/interaction-translations/<int:pk>/publish/",
@@ -160,54 +149,61 @@ urlpatterns = [
             RejectDrugTranslationListView.as_view(),
             name="reject-drug-translations",
         ),
-    path(
-        "drug-warnings/drafts/",
-        DraftDrugWarningListView.as_view(),
-        name="draft-drug-warnings",
-    ),
-    path(
-        "drug-warnings/rejects/",
-        RejectDrugWarningListView.as_view(),
-        name="reject-drug-warnings",
-    ),
-    path(
-        "drug-interactions/drafts/",
-        DraftDrugInteractionListView.as_view(),
-        name="draft-drug-interactions",
-    ),
-    path(
-        "drug-interactions/drafts/<int:pk>/",
-        DraftDrugInteractionDetailView.as_view(),
-        name="draft-drug-interaction-detail",
-    ),
-    path(
-        "drug-interactions/rejects/",
-        RejectDrugInteractionListView.as_view(),
-        name="reject-drug-interaction-detail",
-    ),
-    path(
-        "drug-warnings/drafts/<int:pk>/",
-        DraftDrugWarningDetailView.as_view(),
-        name="draft-drug-warning-detail",
-    ),
-    path(
-        "drug-warnings/rejects/<int:pk>/",
-        RejectDrugWarningDetailView.as_view(),
-        name="reject-drug-warning-detail",
-    ),
+
     path(
         "drug-translation/drafts/<int:pk>/",
         DraftDrugTranslationDetailView.as_view(),
         name="draft-drug-translation-detail",
     ),
-    path(
-        "drug-interaction/rejects/<int:pk>/",
-        RejectDrugInteractionDetailView.as_view(),
-        name="reject-drug-interaction-detail",
-    ),
+    
     path(
         "drug-translation/rejects/<int:pk>/",
         RejectDrugTranslationDetailView.as_view(),
         name="reject-drug-translation-detail",
     ),
+    path(
+              "drug-warning-translation/drafted/",
+        DraftDrugWarningTranslationListView.as_view(),
+                name="draft-drug-warning-translations",
+            ),
+    path(
+              "drug-warning-translation/rejected/",
+        RejectDrugWarningTranslationListView.as_view(),
+        name="reject-drug-warning-translations",
+            ),
+    path(
+            "drug-warning-translation/drafts/<int:pk>/",
+            DraftDrugWarningTranslationDetailView.as_view(),
+            name="draft-drug-warning-translation-detail",
+        ),
+    path(
+            "drug-warning-translation/rejects/<int:pk>/",
+            RejectDrugWarningTranslationDetailView.as_view(),
+            name="reject-drug-warning-translation-detail",
+
+        ),
+    path(
+                  "drug-interaction-translation/drafted/",
+        DraftDrugInteractionTranslationListView.as_view(),
+                    name="draft-drug-interaction-translations",
+                ),
+    path(
+                "drug-interaction-translation/rejected/",
+        RejectDrugInteractionTranslationListView.as_view(),
+        name="reject-drug-interaction-translations",
+            ),
+    path(
+            "drug-interaction-translation/drafts/<int:pk>/",
+            DraftDrugInteractionTranslationDetailView.as_view(),
+            name="draft-drug-interaction-translation-detail",
+        ),
+    path(
+              "drug-interaction-translation/rejects/<int:pk>/",
+        RejectDrugInteractionTranslationDetailView.as_view(),
+                name="reject-drug-interaction-translation-detail",
+    
+            ),
+             
+
+
 ]

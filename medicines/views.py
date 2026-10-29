@@ -58,7 +58,7 @@ class PharmacistListCreateView(generics.ListCreateAPIView):
         return User.objects.filter(role="pharmacist")
 
 class PharmacistRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
-    permission_classes = [IsPharmacistOrSuperUser]
+    permission_classes = [IsPharmacist]
     serializer_class = PharmacistCreateSerializer
 
     def get_object(self):
@@ -246,9 +246,11 @@ class DrugTranslationCreateView(generics.CreateAPIView):
 
 class DrugTranslationListView(generics.ListAPIView):
     serializer_class = DrugTranslationSerializer
-
+    
     def get_queryset(self):
-        queryset = DrugTranslation.objects.all()
+        queryset = DrugTranslation.objects.filter(
+            review_status="published"
+        )
 
         language_code = self.request.query_params.get("language")
 
@@ -258,8 +260,6 @@ class DrugTranslationListView(generics.ListAPIView):
             )
 
         return queryset
-
-
 class DrugWarningCreateView(generics.CreateAPIView):
     queryset = DrugWarning.objects.all()
     serializer_class = DrugWarningSerializer
@@ -269,24 +269,29 @@ class DrugWarningListView(generics.ListAPIView):
     serializer_class = DrugWarningSerializer
 
     def get_queryset(self):
-        queryset = DrugWarning.objects.all()
+        queryset = DrugWarning.objects.filter(
+            translations__review_status="published"
+        )
 
-        drug_id = self.request.query_params.get("drug")
+        drug_id = self.request.query_params.get("drug_id")
 
         if drug_id:
             queryset = queryset.filter(drug_id=drug_id)
 
-        return queryset
+        return queryset.select_related(
+            "drug"
+        ).prefetch_related(
+            "sources",
+            "translations__language",
+        ).distinct().order_by("id")
 
 
 class DrugInteractionListView(generics.ListAPIView):
-    """List published drug interactions."""
-
     serializer_class = DrugInteractionSerializer
 
     def get_queryset(self):
         queryset = DrugInteraction.objects.filter(
-            review_status=DrugInteraction.Status.PUBLISHED
+            translations__review_status="published"
         )
 
         drug_id = self.request.query_params.get("drug_id")
@@ -302,8 +307,8 @@ class DrugInteractionListView(generics.ListAPIView):
             "drug_b",
         ).prefetch_related(
             "sources",
-            "translations",
-        ).order_by("id")
+            "translations__language",
+        ).distinct().order_by("id")
 
 
 class DrugInteractionCreateView(generics.CreateAPIView):
@@ -316,7 +321,9 @@ class DrugInteractionTranslationListView(generics.ListAPIView):
     serializer_class = DrugInteractionTranslationSerializer
 
     def get_queryset(self):
-        queryset = DrugInteractionTranslation.objects.all()
+        queryset = DrugInteractionTranslation.objects.filter(
+            review_status="published"
+        )
 
         language_code = self.request.query_params.get("language")
 
@@ -358,8 +365,10 @@ class DrugWarningTranslationListView(generics.ListAPIView):
     serializer_class = DrugWarningTranslationSerializer
 
     def get_queryset(self):
-        queryset = DrugWarningTranslation.objects.all()
-
+        queryset = DrugWarningTranslation.objects.filter(
+            review_status="published"
+        )
+            
         language_code = self.request.query_params.get("language")
 
         if language_code:
@@ -453,85 +462,6 @@ class DrugTranslationRejectView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-class DrugWarningPublishView(APIView):
-    permission_classes = [IsPharmacistOrSuperUser]
-
-    def post(self, request, pk):
-        warning = get_object_or_404(
-            DrugWarning,
-            pk=pk,
-        )
-        if warning.review_status == "published":
-            return Response(
-                {
-                    "message": "This drug warning is already published.",
-                    "review_status": warning.review_status,
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        warning.review_status = "published"
-        warning.save(update_fields=["review_status"])
-
-        return Response(
-            {
-                "message": "Drug warning published successfully.",
-                "id": str(warning.pk),
-                "review_status": warning.review_status,
-            },
-            status=status.HTTP_200_OK,
-        )
-
-
-class DrugWarningRejectView(APIView):
-    permission_classes = [IsPharmacistOrSuperUser]
-
-    def post(self, request, pk):
-        try:
-            warning = DrugWarning.objects.get(pk=pk)
-        except DrugWarning.DoesNotExist:
-            return Response(
-                {"detail": "Drug warning not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        reason = request.data.get("reason", "").strip()
-
-        if not reason:
-            return Response(
-                {"reason": "A rejection reason is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if warning.review_status != "draft":
-            return Response(
-                {
-                    "detail": (
-                        "Only draft warnings can be rejected."
-                    )
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        warning.review_status = "rejected"
-        warning.rejection_reason = reason
-        warning.save(
-            update_fields=[
-                "review_status",
-                "rejection_reason",
-            ]
-        )
-
-        return Response(
-            {
-                "message": "Drug warning rejected successfully.",
-                "id": warning.pk,
-                "review_status": warning.review_status,
-                "rejection_reason": warning.rejection_reason,
-            },
-            status=status.HTTP_200_OK,
-        )
-
 class DrugWarningTranslationPublishView(APIView):
     permission_classes = [IsPharmacistOrSuperUser]
 
@@ -614,74 +544,7 @@ class DrugWarningTranslationRejectView(APIView):
         )
 
 
-class DrugInteractionPublishView(APIView):
-    permission_classes = [IsPharmacistOrSuperUser]
 
-    def post(self, request, pk):
-        interaction = get_object_or_404(
-            DrugInteraction,
-            pk=pk,
-        )
-        if interaction.review_status == "published":
-            return Response(
-                {
-                    "message": "This drug interaction is already published.",
-                    "review_status": interaction.review_status,
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        interaction.review_status = "published"
-        interaction.save(update_fields=["review_status"])
-
-        return Response(
-            {
-                "message": "Drug interaction published successfully.",
-                "id": str(interaction.pk),
-                "review_status": interaction.review_status,
-            },
-            status=status.HTTP_200_OK,
-        )
-
-
-class DrugInteractionRejectView(APIView):
-    permission_classes = [IsPharmacistOrSuperUser]
-
-    def post(self, request, pk):
-        interaction = get_object_or_404(
-            DrugInteraction,
-            pk=pk,
-        )
-
-        reason = request.data.get("reason", "").strip()
-
-        if not reason:
-            return Response(
-                {"reason": "Rejection reason is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if interaction.review_status in ["published", "rejected"]:
-            return Response(
-                {
-                    "detail": "Only a non-published, non-rejected interaction can be rejected.",
-                    "review_status": interaction.review_status,
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        interaction.review_status = "rejected"
-        interaction.rejection_reason = reason
-        interaction.save(
-            update_fields=["review_status", "rejection_reason"]
-        )
-
-        return Response({
-            "message": "Drug interaction rejected successfully.",
-            "id": interaction.pk,
-            "review_status": interaction.review_status,
-            "rejection_reason": interaction.rejection_reason,
-        }, status=status.HTTP_200_OK)
 
 class DrugInteractionTranslationPublishView(APIView):
     permission_classes = [IsPharmacistOrSuperUser]
@@ -859,95 +722,82 @@ class RejectDrugTranslationDetailView(generics.RetrieveAPIView):
             review_status="reject"
         ).select_related("drug", "language")
 
-class DraftDrugWarningListView(generics.ListAPIView):
-    serializer_class = DrugWarningSerializer
+
+class DraftDrugWarningTranslationListView(generics.ListAPIView):
+    serializer_class = DrugWarningTranslationSerializer
     permission_classes = [IsPharmacistOrSuperUser]
 
     def get_queryset(self):
-        return DrugWarning.objects.filter(
+        return DrugWarningTranslation.objects.filter(
             review_status="draft"
-        ).select_related("drug").prefetch_related(
-            "translations",
-            "sources",
-        )
-class RejectDrugWarningListView(generics.ListAPIView):
-    serializer_class = DrugWarningSerializer
+        ).select_related("warning", "language")
+
+
+class RejectDrugWarningTranslationListView(generics.ListAPIView):
+    serializer_class = DrugWarningTranslationSerializer
     permission_classes = [IsPharmacistOrSuperUser]
 
     def get_queryset(self):
-        return DrugWarning.objects.filter(
+        return DrugWarningTranslation.objects.filter(
             review_status="reject"
-        ).select_related("drug").prefetch_related(
-            "translations",
-            "sources",
-        )
+        ).select_related("warning", "language")
 
 
-class DraftDrugWarningDetailView(generics.RetrieveAPIView):
-    serializer_class = DrugWarningSerializer
-    permission_classes = [IsPharmacistOrSuperUser]
-    queryset = DrugWarning.objects.all()
-    
-class RejectDrugWarningDetailView(generics.RetrieveAPIView):
-    serializer_class = DrugWarningSerializer
-    permission_classes = [IsPharmacistOrSuperUser]
-    queryset = DrugWarning.objects.all()
-    
-
-class DraftDrugInteractionListView(generics.ListAPIView):
-    serializer_class = DrugInteractionSerializer
+class DraftDrugWarningTranslationDetailView(generics.RetrieveAPIView):
+    serializer_class = DrugWarningTranslationSerializer
     permission_classes = [IsPharmacistOrSuperUser]
 
     def get_queryset(self):
-        return DrugInteraction.objects.filter(
+        return DrugWarningTranslation.objects.filter(
             review_status="draft"
-        ).select_related(
-            "drug_a",
-            "drug_b",
-        ).prefetch_related(
-            "translations",
-            "sources",
-        )
-class RejectDrugInteractionListView(generics.ListAPIView):
-    serializer_class = DrugInteractionSerializer
+        ).select_related("warning", "language")
+
+
+class RejectDrugWarningTranslationDetailView(generics.RetrieveAPIView):
+    serializer_class = DrugWarningTranslationSerializer
     permission_classes = [IsPharmacistOrSuperUser]
 
     def get_queryset(self):
-        return DrugInteraction.objects.filter(
+        return DrugWarningTranslation.objects.filter(
             review_status="reject"
-        ).select_related(
-            "drug_a",
-            "drug_b",
-        ).prefetch_related(
-            "translations",
-            "sources",
-        )
+        ).select_related("warning", "language")
 
 
-class DraftDrugInteractionDetailView(generics.RetrieveAPIView):
-    serializer_class = DrugInteractionSerializer
+class DraftDrugInteractionTranslationListView(generics.ListAPIView):
+    serializer_class = DrugInteractionTranslationSerializer
     permission_classes = [IsPharmacistOrSuperUser]
 
     def get_queryset(self):
-        return DrugInteraction.objects.filter(
+        return DrugInteractionTranslation.objects.filter(
             review_status="draft"
-        ).select_related(
-            "drug_a",
-            "drug_b",
-        ).prefetch_related(
-            "translations",
-            "sources",)
-class RejectDrugInteractionDetailView(generics.RetrieveAPIView):
-    serializer_class = DrugInteractionSerializer
+        ).select_related("interaction", "language")
+
+
+class RejectDrugInteractionTranslationListView(generics.ListAPIView):
+    serializer_class = DrugInteractionTranslationSerializer
     permission_classes = [IsPharmacistOrSuperUser]
 
     def get_queryset(self):
-        return DrugInteraction.objects.filter(
+        return DrugInteractionTranslation.objects.filter(
             review_status="reject"
-        ).select_related(
-            "drug_a",
-            "drug_b",
-        ).prefetch_related(
-            "translations",
-            "sources",
-        )
+        ).select_related("interaction", "language")
+
+
+class DraftDrugInteractionTranslationDetailView(generics.RetrieveAPIView):
+    serializer_class = DrugInteractionTranslationSerializer
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def get_queryset(self):
+        return DrugInteractionTranslation.objects.filter(
+            review_status="draft"
+        ).select_related("interaction", "language")
+
+
+class RejectDrugInteractionTranslationDetailView(generics.RetrieveAPIView):
+    serializer_class = DrugInteractionTranslationSerializer
+    permission_classes = [IsPharmacistOrSuperUser]
+
+    def get_queryset(self):
+        return DrugInteractionTranslation.objects.filter(
+            review_status="reject"
+        ).select_related("interaction", "language")
