@@ -711,7 +711,7 @@ class RejectDrugTranslationListView(generics.ListAPIView):
     permission_classes = [IsPharmacistOrSuperUser]
     def get_queryset(self):
         return DrugTranslation.objects.filter(
-            review_status="reject"
+            review_status="rejected"
         ).select_related("drug", "language")
 
 class DraftDrugTranslationDetailView(generics.RetrieveAPIView):
@@ -730,7 +730,7 @@ class RejectDrugTranslationDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return DrugTranslation.objects.filter(
-            review_status="reject"
+            review_status="rejected"
         ).select_related("drug", "language")
 
 
@@ -750,7 +750,7 @@ class RejectDrugWarningTranslationListView(generics.ListAPIView):
 
     def get_queryset(self):
         return DrugWarningTranslation.objects.filter(
-            review_status="reject"
+            review_status="rejected"
         ).select_related("warning", "language")
 
 
@@ -770,7 +770,7 @@ class RejectDrugWarningTranslationDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return DrugWarningTranslation.objects.filter(
-            review_status="reject"
+            review_status="rejected"
         ).select_related("warning", "language")
 
 
@@ -790,7 +790,7 @@ class RejectDrugInteractionTranslationListView(generics.ListAPIView):
 
     def get_queryset(self):
         return DrugInteractionTranslation.objects.filter(
-            review_status="reject"
+            review_status="rejected"
         ).select_related("interaction", "language")
 
 
@@ -810,5 +810,5 @@ class RejectDrugInteractionTranslationDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return DrugInteractionTranslation.objects.filter(
-            review_status="reject"
+            review_status="rejected"
         ).select_related("interaction", "language")
