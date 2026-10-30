@@ -316,7 +316,6 @@ class DrugInteractionCreateView(generics.CreateAPIView):
     permission_classes = [IsSuperuserOnly]
 
 
-
 class DrugInteractionTranslationListView(generics.ListAPIView):
     serializer_class = DrugInteractionTranslationSerializer
 
@@ -326,13 +325,20 @@ class DrugInteractionTranslationListView(generics.ListAPIView):
         )
 
         language_code = self.request.query_params.get("language")
+        drug_id = self.request.query_params.get("drug_id")
 
         if language_code:
             queryset = queryset.filter(
                 language__code=language_code
             )
 
-        return queryset
+        if drug_id:
+            queryset = queryset.filter(
+                Q(interaction__drug_a__id=drug_id) |
+                Q(interaction__drug_b__id=drug_id)
+            )
+
+        return queryset.distinct()
 
 
 class DrugInteractionDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -370,14 +376,19 @@ class DrugWarningTranslationListView(generics.ListAPIView):
         )
             
         language_code = self.request.query_params.get("language")
+        drug_id = self.request.query_params.get("drug_id")
+
 
         if language_code:
             queryset = queryset.filter(
                 language__code=language_code
             )
-
-        return queryset
-
+        if drug_id:
+            queryset = queryset.filter(
+                warning__drug_id=drug_id
+            )
+                
+        return queryset.distinct()
 
 class DrugSourceListView(generics.ListAPIView):
     serializer_class = DrugSourceSerializer
@@ -393,7 +404,7 @@ class DrugSourceCreateView(generics.CreateAPIView):
 
 
 class DrugTranslationPublishView(APIView):
-    permission_classes = [IsPharmacistOrSuperUser]
+    permission_classes = [IsPharmacist]
 
     def post(self, request, pk):
         translation = get_object_or_404(
@@ -423,7 +434,7 @@ class DrugTranslationPublishView(APIView):
 
 
 class DrugTranslationRejectView(APIView):
-    permission_classes = [IsPharmacistOrSuperUser]
+    permission_classes = [IsPharmacist]
 
     def post(self, request, pk):
         translation = get_object_or_404(
@@ -463,7 +474,7 @@ class DrugTranslationRejectView(APIView):
 
 
 class DrugWarningTranslationPublishView(APIView):
-    permission_classes = [IsPharmacistOrSuperUser]
+    permission_classes = [IsPharmacist]
 
     def post(self, request, pk):
         translation = get_object_or_404(
@@ -493,7 +504,7 @@ class DrugWarningTranslationPublishView(APIView):
 
 
 class DrugWarningTranslationRejectView(APIView):
-    permission_classes = [IsPharmacistOrSuperUser]
+    permission_classes = [IsPharmacist]
 
     def post(self, request, pk):
         translation = get_object_or_404(
@@ -547,7 +558,7 @@ class DrugWarningTranslationRejectView(APIView):
 
 
 class DrugInteractionTranslationPublishView(APIView):
-    permission_classes = [IsPharmacistOrSuperUser]
+    permission_classes = [IsPharmacist]
 
     def post(self, request, pk):
         translation = get_object_or_404(
@@ -573,7 +584,7 @@ class DrugInteractionTranslationPublishView(APIView):
 
 
 class DrugInteractionTranslationRejectView(APIView):
-    permission_classes = [IsPharmacistOrSuperUser]
+    permission_classes = [IsPharmacist]
 
     def post(self, request, pk):
         translation = get_object_or_404(
