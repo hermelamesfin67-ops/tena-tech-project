@@ -270,7 +270,8 @@ class DrugWarningListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = DrugWarning.objects.filter(
-            translations__review_status="published"
+            Q(translations__review_status="published") |
+            Q(translations__isnull=True)
         )
 
         drug_id = self.request.query_params.get("drug_id")
@@ -291,7 +292,8 @@ class DrugInteractionListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = DrugInteraction.objects.filter(
-            translations__review_status="published"
+            Q(translations__review_status="published") |
+            Q(translations__isnull=True)
         )
 
         drug_id = self.request.query_params.get("drug_id")
@@ -339,6 +341,7 @@ class DrugInteractionTranslationListView(generics.ListAPIView):
             )
 
         return queryset.distinct()
+
 
 
 class DrugInteractionDetailView(generics.RetrieveUpdateDestroyAPIView):

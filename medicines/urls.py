@@ -75,12 +75,12 @@ urlpatterns = [
         DrugTranslationPublishView.as_view(),
         name="drug-translation-publish",
     ),
+
     path(
         "drugs/translations/<int:pk>/reject/",
         DrugTranslationRejectView.as_view(),
         name="drug-translation-reject",
     ),
-
 
     path(
         "drugs/warnings/translations/<int:pk>/publish/",
@@ -92,6 +92,7 @@ urlpatterns = [
         DrugWarningTranslationRejectView.as_view(),
         name="drug-warning-translation-reject",
     ),
+
     path(
         "drugs/interactions/<int:pk>/",
         DrugInteractionDetailView.as_view(),
@@ -103,6 +104,7 @@ urlpatterns = [
         DrugInteractionTranslationPublishView.as_view(),
         name="interaction-translation-publish",
     ),
+
     path(
         "drugs/interaction-translations/<int:pk>/reject/",
         DrugInteractionTranslationRejectView.as_view(),
@@ -114,11 +116,13 @@ urlpatterns = [
         DrugTranslationDetailView.as_view(),
         name="drug-translation-detail",
     ),
+
     path(
         "category-translations/<int:pk>/",
         CategoryTranslationDetailView.as_view(),
         name="category-translation-detail",
     ),
+
     path(
         "drug-interaction-translations/<int:pk>/",
         DrugInteractionTranslationDetailView.as_view(),
@@ -139,17 +143,19 @@ urlpatterns = [
         DrugSourceDetailView.as_view(),
         name="drug-source-detail",
     ),
+
     path(
         "drug-translations/drafts/",
         DraftDrugTranslationListView.as_view(),
         name="draft-drug-translations",
     ),
+
     path(
             "drug-translations/rejects/",
             RejectDrugTranslationListView.as_view(),
             name="reject-drug-translations",
         ),
-
+ 
     path(
         "drug-translation/drafts/<int:pk>/",
         DraftDrugTranslationDetailView.as_view(),
@@ -162,12 +168,12 @@ urlpatterns = [
         name="reject-drug-translation-detail",
     ),
     path(
-              "drug-warning-translation/drafted/",
+          "drug-warning-translation/drafted/",
         DraftDrugWarningTranslationListView.as_view(),
                 name="draft-drug-warning-translations",
             ),
     path(
-              "drug-warning-translation/rejected/",
+           "drug-warning-translation/rejected/",
         RejectDrugWarningTranslationListView.as_view(),
         name="reject-drug-warning-translations",
             ),
@@ -176,6 +182,7 @@ urlpatterns = [
             DraftDrugWarningTranslationDetailView.as_view(),
             name="draft-drug-warning-translation-detail",
         ),
+
     path(
             "drug-warning-translation/rejects/<int:pk>/",
             RejectDrugWarningTranslationDetailView.as_view(),
@@ -183,12 +190,12 @@ urlpatterns = [
 
         ),
     path(
-                  "drug-interaction-translation/drafted/",
+        "drug-interaction-translation/drafted/",
         DraftDrugInteractionTranslationListView.as_view(),
                     name="draft-drug-interaction-translations",
                 ),
     path(
-                "drug-interaction-translation/rejected/",
+         "drug-interaction-translation/rejected/",
         RejectDrugInteractionTranslationListView.as_view(),
         name="reject-drug-interaction-translations",
             ),
