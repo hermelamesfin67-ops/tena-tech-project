@@ -153,9 +153,9 @@ class DrugTranslationSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         validated_data["review_status"] = "draft"
+        validated_data["rejection_reason"] = None
 
         return super().update(instance, validated_data)
-
 
 class DrugSerializer(serializers.ModelSerializer):
     categories = serializers.PrimaryKeyRelatedField(
@@ -241,6 +241,7 @@ class DrugWarningTranslationSerializer(
 
     def update(self, instance, validated_data):
         validated_data["review_status"] = "draft"
+        validated_data["rejection_reason"] = None
 
         return super().update(instance, validated_data)
 
@@ -311,6 +312,7 @@ class DrugInteractionTranslationSerializer(
 
     def update(self, instance, validated_data):
         validated_data["review_status"] = "draft"
+        validated_data["rejection_reason"] = None
 
         return super().update(instance, validated_data)
 

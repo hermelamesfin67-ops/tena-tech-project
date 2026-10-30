@@ -301,6 +301,12 @@ class DrugWarning(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+            constraints = [
+                models.UniqueConstraint(
+                    fields=["drug", "warning_type"],
+                    name="unique_drug_warning",
+                ),]
 
     def __str__(self):
         return f"{self.drug} - {self.get_warning_type_display()}"
