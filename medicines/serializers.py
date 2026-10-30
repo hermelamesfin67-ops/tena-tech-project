@@ -150,10 +150,12 @@ class DrugTranslationSerializer(serializers.ModelSerializer):
             "review_status",
             "updated_at",
         ]
+
     def update(self, instance, validated_data):
         validated_data["review_status"] = "draft"
 
         return super().update(instance, validated_data)
+
 
 class DrugSerializer(serializers.ModelSerializer):
     categories = serializers.PrimaryKeyRelatedField(
@@ -236,15 +238,16 @@ class DrugWarningTranslationSerializer(
             "reviewed_at",
             "updated_at",
         ]
+
     def update(self, instance, validated_data):
         validated_data["review_status"] = "draft"
 
         return super().update(instance, validated_data)
+
+
 class DrugWarningSerializer(serializers.ModelSerializer):
-    translations = DrugWarningTranslationSerializer(
-        many=True,
-        read_only=True,
-    )
+
+    translations = serializers.SerializerMethodField()
 
     class Meta:
         model = DrugWarning
@@ -259,11 +262,20 @@ class DrugWarningSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
-            "review_status",
             "translations",
             "created_at",
             "updated_at",
         ]
+
+    def get_translations(self, obj):
+        translations = obj.translations.filter(
+            review_status="published"
+        )
+
+        return DrugWarningTranslationSerializer(
+            translations,
+            many=True
+        ).data
 
 
 class DrugInteractionTranslationSerializer(
@@ -296,10 +308,12 @@ class DrugInteractionTranslationSerializer(
             "reviewed_at",
             "updated_at",
         ]
+
     def update(self, instance, validated_data):
         validated_data["review_status"] = "draft"
 
         return super().update(instance, validated_data)
+
 
 class DrugInteractionSerializer(serializers.ModelSerializer):
     drug_a_name = serializers.CharField(
