@@ -157,6 +157,7 @@ class DrugTranslationSerializer(serializers.ModelSerializer):
 
         return super().update(instance, validated_data)
 
+
 class DrugSerializer(serializers.ModelSerializer):
     categories = serializers.PrimaryKeyRelatedField(
         many=True,
