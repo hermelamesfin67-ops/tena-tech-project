@@ -32,6 +32,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "tena-tech-project.onrender.com",
+    "tena-tech-project-1.onrender.com",
 ]
 
 
