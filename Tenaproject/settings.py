@@ -38,6 +38,7 @@ ALLOWED_HOSTS = [
 
 CORS_ALLOWED_ORIGINS = ["http://localhost:3050",
                         "https://tena-system.vercel.app",
+                        "https://dev-tena-system.vercel.app",
                         ]
 
 
